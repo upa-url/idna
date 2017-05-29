@@ -2,6 +2,7 @@
 //
 
 #include "idna_test.h"
+#include "ddt/DataDrivenTest.hpp"
 #include <algorithm>
 #include <cassert>
 #include <cstdint>
@@ -22,6 +23,10 @@ int main()
 
 void run_idna_tests(const char* file_name)
 {
+    DataDrivenTest ddt;
+    ddt.config_show_passed(false);
+    ddt.config_debug_break(false);
+
     std::cout << "========== " << file_name << " ==========\n";
     std::ifstream file(file_name, std::ios_base::in);
     if (!file.is_open()) {
@@ -59,14 +64,33 @@ void run_idna_tests(const char* file_name)
                 const bool exp_ascii_ok = !is_error(c4);
                 const std::string& exp_ascii(c4.empty() ? exp_unicode : c4);
 
-                //bool ok;
+                // test
+                ddt.test_case(line.c_str(), [&](DataDrivenTest::TestCase& tc) {
+                    bool ok;
 
-                // test ToUnicode
-                //ok = idna_test::toUnicode(output, source);
+                    // ToUnicode
+                    ok = idna_test::toUnicode(output, source);
+                    tc.assert_equal(exp_unicode_ok, ok, "ToUnicode success");
+                    if (exp_unicode_ok && ok) {
+                        tc.assert_equal(exp_unicode, output, "ToUnicode output");
+                    }
 
-                // test ToASCII
-                //ok = idna_test::toASCII(output, source, true);
-                //ok = idna_test::toASCII(output, source, false);
+                    // ToASCII
+                    if (c1 == "T" || c1 == "B") {
+                        ok = idna_test::toASCII(output, source, true);
+                        tc.assert_equal(exp_ascii_ok, ok, "ToASCII(trans.) success");
+                        if (exp_ascii_ok && ok) {
+                            tc.assert_equal(exp_ascii, output, "ToASCII(trans.) output");
+                        }
+                    }
+                    if (c1 == "N" || c1 == "B") {
+                        ok = idna_test::toASCII(output, source, false);
+                        tc.assert_equal(exp_ascii_ok, ok, "ToASCII(non-trans.) success");
+                        if (exp_ascii_ok && ok) {
+                            tc.assert_equal(exp_ascii, output, "ToASCII(non-trans.) output");
+                        }
+                    }
+                });
             }
             catch (std::exception& ex) {
                 std::cerr << "ERROR: " << ex.what() << std::endl;
