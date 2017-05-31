@@ -82,7 +82,12 @@ namespace idna_test {
                 input.data(), static_cast<int32_t>(input.length()),
                 buff, sizeof(buff),
                 &info, &err);
-            if (U_SUCCESS(err) && info.errors == 0) {
+#if 0
+            const uint32_t idna_err = info.errors & ~static_cast<uint32_t>(UIDNA_ERROR_EMPTY_LABEL);
+#else
+            const uint32_t idna_err = info.errors;
+#endif
+            if (U_SUCCESS(err) && idna_err == 0) {
                 output.assign(buff, output_length);
                 return true;
             }
