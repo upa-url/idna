@@ -43,7 +43,7 @@ void run_idna_tests(const char* file_name)
         auto i_comment = line.find('#');
         if (i_comment != line.npos)
             line.resize(i_comment);
-        // line without comment
+        // got line without comment
         if (line.length() > 0) {
             try {
                 std::size_t pos = 0;
