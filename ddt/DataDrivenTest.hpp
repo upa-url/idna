@@ -5,20 +5,26 @@
 #include <string>
 #include <utility>
 
+namespace {
+
+// Debugger suppor
+
 #if defined(_MSC_VER)
 
-// debuging
 extern "C" __declspec(dllimport) int __stdcall IsDebuggerPresent();
 
-namespace {
-	inline bool isDebuggerActive() {
-		return IsDebuggerPresent() != 0;
-	}
-}
+inline bool isDebuggerActive() { return IsDebuggerPresent() != 0; }
+
+#define DATA_DRIVEN_TEST_DEBUG_BREAK	__debugbreak()
+
+#else
+
+inline bool isDebuggerActive() { return false; }
+
 #endif
 
 
-namespace {
+// Value output
 
 template <class T>
 const T& vout(const T& v) { return v; }
@@ -27,7 +33,7 @@ const char* vout(bool v) {
 	return v ? "true" : "false";
 }
 
-}
+} // namespace
 
 class DataDrivenTest {
 public:
@@ -66,10 +72,10 @@ public:
 				report_success();
 			} else {
 				report_failure()
-					<< "+ expected - actual\n"
-					<< " " << value_name << ":\n"
-					<< "  +" << vout(expected) << "\n"
-					<< "  -" << vout(value) << std::endl;
+					<< value_name << ":\n"
+					<< " - actual + expected\n"
+					<< "  -" << vout(value) << "\n"
+					<< "  +" << vout(expected) << std::endl;
 			}
 			return *this;
 		}
@@ -140,10 +146,10 @@ public:
 	void test_case(const char* name, TestFun test_fun) {
 		TestCase tc(*this, name);
 		test_fun(tc);
-#if defined(_MSC_VER)
+#if defined(DATA_DRIVEN_TEST_DEBUG_BREAK)
 		// debug break;
 		if (tc.is_failure() && m_debug_break && isDebuggerActive()) {
-			__debugbreak();
+			DATA_DRIVEN_TEST_DEBUG_BREAK;
 			test_fun(tc);
 		}
 #endif
