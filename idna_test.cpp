@@ -37,6 +37,7 @@ void run_idna_tests(const char* file_name)
     int line_num = 0;
     std::string line;
     std::string output;
+    std::string case_name;
     while (std::getline(file, line)) {
         line_num++;
         // Comments are indicated with hash marks
@@ -65,7 +66,8 @@ void run_idna_tests(const char* file_name)
                 const std::string& exp_ascii(c4.empty() ? exp_unicode : c4);
 
                 // test
-                ddt.test_case(line.c_str(), [&](DataDrivenTest::TestCase& tc) {
+                case_name.assign("(").append(std::to_string(line_num)).append(") ").append(line);
+                ddt.test_case(case_name.c_str(), [&](DataDrivenTest::TestCase& tc) {
                     bool ok;
 
                     // ToUnicode
