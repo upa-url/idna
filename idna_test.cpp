@@ -17,6 +17,8 @@ static bool is_error(const std::string& col);
 int main()
 {
     run_idna_tests("test-data/IdnaTest.txt");
+//  run_idna_tests("test-data/IdnaTest-9.0.0.txt");
+//  run_idna_tests("test-data/IdnaTest-7.0.0.txt");
 
     return 0;
 }
