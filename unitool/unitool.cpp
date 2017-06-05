@@ -1,19 +1,23 @@
 // unitool.cpp : Defines the entry point for the console application.
 //
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <string>
 
 
 class OutputFmt {
 public:
-    inline OutputFmt(std::ostream& fout) : m_fout(fout), m_delim('['), m_line_len(0) {}
+    OutputFmt(std::ostream& fout, size_t max_line_len);
     void output(const std::string& code);
     ~OutputFmt();
 protected:
     std::ostream& m_fout;
-    char m_delim;
+    bool m_first;
     size_t m_line_len;
+    // options
+    const size_t m_max_line_len;
+    static const size_t m_indent = 2;
 };
 
 static void parse_UnicodeData(const char* file_name, const char* fout_name);
@@ -30,16 +34,33 @@ int main(int argc, char* argv[])
     return 0;
 }
 
+OutputFmt::OutputFmt(std::ostream& fout, size_t max_line_len)
+    : m_fout(fout)
+    , m_first(true)
+    , m_line_len(0)
+    , m_max_line_len(max_line_len)
+{
+    m_fout << "[" << std::endl;
+}
+
 void OutputFmt::output(const std::string& code) {
-    m_fout << m_delim; m_line_len++;
-    if (m_line_len >= 90) {
-        m_fout << "\n";
-        m_line_len = 0;
+    if (m_first) {
+        m_first = false;
+        m_fout << std::setw(m_indent) << "";
+        m_line_len = m_indent;
+    } else if (m_line_len + code.length() > (m_max_line_len - 5)) {
+        // 5 is ", 0x,".length
+        m_fout << ",\n";
+        m_fout << std::setw(m_indent) << "";
+        m_line_len = m_indent;
+    } else {
+        m_fout << ", ";
+        m_line_len += 2;
     }
     m_fout << "0x" << code;
     m_line_len += 2 + code.length();
-    m_delim = ',';
 }
+
 OutputFmt::~OutputFmt() {
     m_fout << "]" << std::endl;
 }
@@ -58,7 +79,7 @@ void parse_UnicodeData(const char* file_name, const char* fout_name)
         return;
     }
 
-    OutputFmt outfmt(fout);
+    OutputFmt outfmt(fout, 100);
 
     int line_num = 0;
     std::string line;
