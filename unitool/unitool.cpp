@@ -1,5 +1,6 @@
 // unitool.cpp : Defines the entry point for the console application.
 //
+#include <algorithm>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -91,6 +92,8 @@ public:
     void add(int cp0, int cp1, std::string value);
     void add(std::string cpstr, std::string value);
 
+    void sort();
+    void output_js(OutputFmt& outfmt);
 protected:
     std::vector<RangeItem> m_ranges;
 };
@@ -106,6 +109,22 @@ void CodePointRanges::add(int cp0, int cp1, std::string value) {
             m_ranges.push_back(RangeItem{ cp0, cp1, value });
         }
     }
+}
+
+template <typename UIntT>
+inline void unsigned_to_str(UIntT num, std::string& output, UIntT base) {
+    static const char digit[] = "0123456789ABCDEF";
+
+    // divider
+    UIntT divider = 1;
+    const UIntT num0 = num / base;
+    while (divider <= num0) divider *= base;
+
+    // convert
+    do {
+        output.push_back(digit[num / divider % base]);
+        divider /= base;
+    } while (divider);
 }
 
 inline static int hexstr_to_int(const char* first, const char* last) {
@@ -139,6 +158,25 @@ void CodePointRanges::add(std::string cpstr, std::string value) {
     }
 }
 
+void CodePointRanges::sort() {
+    std::sort(m_ranges.begin(), m_ranges.end(), [](const RangeItem &a, const RangeItem &b){
+        return a.cp0 < b.cp0;
+    });
+}
+
+void CodePointRanges::output_js(OutputFmt& outfmt) {
+    std::string item;
+    for (const RangeItem& r : m_ranges) {
+        item.assign("[");
+        unsigned_to_str(r.cp0, item, 10);
+        item.append(", ");
+        unsigned_to_str(r.cp1, item, 10);
+        item.append(", ").append(r.value).append("]");
+        // output
+        outfmt.output(item);
+    }
+}
+
 // Parse input file
 
 void parse_UnicodeData(const char* file_name, const char* fout_name)
@@ -156,10 +194,11 @@ void parse_UnicodeData(const char* file_name, const char* fout_name)
     }
 
     OutputFmt outfmt(fout, 100);
+    CodePointRanges ranges;
 
     int line_num = 0;
     std::string line;
-    std::string item;
+    std::string value;
     while (std::getline(file, line)) {
         line_num++;
         // Comments are indicated with hash marks
@@ -178,18 +217,13 @@ void parse_UnicodeData(const char* file_name, const char* fout_name)
 
                 //// General_Category=M
                 //if (c2.find('M') != c2.npos) {
-                //  outfmt.output(item.assign("0x").append(c0));
+                //  outfmt.output(value.assign("0x").append(c0));
                 //}
 
                 // Bidi_Class
-                if (!c4.empty()) {
-                    item = "0x";
-                    item += c0;
-                    item += ": \"";
-                    item += c4;
-                    item += "\"";
-                    outfmt.output(item);
-                }
+                if (c1 != "L")
+                    ranges.add(c0, value.assign("\"").append(c1).append("\""));
+
             }
             catch (std::exception& ex) {
                 std::cerr << "ERROR: " << ex.what() << std::endl;
@@ -197,6 +231,10 @@ void parse_UnicodeData(const char* file_name, const char* fout_name)
             }
         }
     }
+
+    // output
+    ranges.sort();
+    ranges.output_js(outfmt);
 }
 
 inline static void AsciiTrimSpaceTabs(const char*& first, const char*& last) {
