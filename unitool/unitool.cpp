@@ -9,7 +9,7 @@
 class OutputFmt {
 public:
     OutputFmt(std::ostream& fout, size_t max_line_len);
-    void output(const std::string& code);
+    void output(const std::string& item);
     ~OutputFmt();
 protected:
     std::ostream& m_fout;
@@ -43,13 +43,13 @@ OutputFmt::OutputFmt(std::ostream& fout, size_t max_line_len)
     m_fout << "[" << std::endl;
 }
 
-void OutputFmt::output(const std::string& code) {
+void OutputFmt::output(const std::string& item) {
     if (m_first) {
         m_first = false;
         m_fout << std::setw(m_indent) << "";
         m_line_len = m_indent;
-    } else if (m_line_len + code.length() > (m_max_line_len - 5)) {
-        // 5 is ", 0x,".length
+    } else if (m_line_len + item.length() > (m_max_line_len - 3)) {
+        // 3 == ", ,".length
         m_fout << ",\n";
         m_fout << std::setw(m_indent) << "";
         m_line_len = m_indent;
@@ -57,8 +57,8 @@ void OutputFmt::output(const std::string& code) {
         m_fout << ", ";
         m_line_len += 2;
     }
-    m_fout << "0x" << code;
-    m_line_len += 2 + code.length();
+    m_fout << item;
+    m_line_len += item.length();
 }
 
 OutputFmt::~OutputFmt() {
@@ -83,7 +83,7 @@ void parse_UnicodeData(const char* file_name, const char* fout_name)
 
     int line_num = 0;
     std::string line;
-    std::string output;
+    std::string item;
     while (std::getline(file, line)) {
         line_num++;
         //// Comments are indicated with hash marks
@@ -97,10 +97,23 @@ void parse_UnicodeData(const char* file_name, const char* fout_name)
                 const std::string c0 = get_column(line, pos);
                 const std::string c1 = get_column(line, pos);
                 const std::string c2 = get_column(line, pos);
+                const std::string c3 = get_column(line, pos);
+                const std::string c4 = get_column(line, pos);
 
-                if (c2.find('M') != c2.npos)
-                    outfmt.output(c0);
+                //// General_Category=M
+                //if (c2.find('M') != c2.npos) {
+                //  outfmt.output(item.assign("0x").append(c0));
+                //}
 
+                // Bidi_Class
+                if (!c4.empty()) {
+                    item = "0x";
+                    item += c0;
+                    item += ": \"";
+                    item += c4;
+                    item += "\"";
+                    outfmt.output(item);
+                }
             }
             catch (std::exception& ex) {
                 std::cerr << "ERROR: " << ex.what() << std::endl;
