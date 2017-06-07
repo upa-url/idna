@@ -15,6 +15,8 @@ enum class DataType {
     Bidi_Class,
     // DerivedCombiningClass.txt
     Combining_Class_Virama,
+    // DerivedJoiningType.txt
+    Joining_Type,
 };
 
 static void parse_UnicodeData(const char* file_name, const char* fout_name, DataType dtype);
@@ -33,6 +35,9 @@ int main(int argc, char* argv[])
             break;
         case 'V':
             dtype = DataType::Combining_Class_Virama;
+            break;
+        case 'J':
+            dtype = DataType::Joining_Type;
             break;
         }
     }
@@ -264,6 +269,10 @@ void parse_UnicodeData(const char* file_name, const char* fout_name, DataType dt
                 case DataType::Combining_Class_Virama:
                     if (c1 == "9")
                         ranges.add(c0);
+                    break;
+                case DataType::Joining_Type:
+                    if (c1 == "D" || c1 == "L" || c1 == "R" || c1 == "T")
+                        ranges.add(c0, value.assign("\"").append(c1).append("\""));
                     break;
                 }
             }
