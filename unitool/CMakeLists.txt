@@ -1,3 +1,5 @@
+cmake_minimum_required(VERSION 3.7)
+
 # Settings
 set(CMAKE_SUPPRESS_REGENERATION true)
 

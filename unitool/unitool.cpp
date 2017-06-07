@@ -6,20 +6,6 @@
 #include <string>
 
 
-class OutputFmt {
-public:
-    OutputFmt(std::ostream& fout, size_t max_line_len);
-    void output(const std::string& item);
-    ~OutputFmt();
-protected:
-    std::ostream& m_fout;
-    bool m_first;
-    size_t m_line_len;
-    // options
-    const size_t m_max_line_len;
-    static const size_t m_indent = 2;
-};
-
 static void parse_UnicodeData(const char* file_name, const char* fout_name);
 static std::string get_column(const std::string& line, std::size_t& pos);
 
@@ -33,6 +19,22 @@ int main(int argc, char* argv[])
 
     return 0;
 }
+
+// class OutputFmt
+
+class OutputFmt {
+public:
+    OutputFmt(std::ostream& fout, size_t max_line_len);
+    void output(const std::string& item);
+    ~OutputFmt();
+protected:
+    std::ostream& m_fout;
+    bool m_first;
+    size_t m_line_len;
+    // options
+    const size_t m_max_line_len;
+    static const size_t m_indent = 2;
+};
 
 OutputFmt::OutputFmt(std::ostream& fout, size_t max_line_len)
     : m_fout(fout)
@@ -64,6 +66,8 @@ void OutputFmt::output(const std::string& item) {
 OutputFmt::~OutputFmt() {
     m_fout << "]" << std::endl;
 }
+
+// Parse input file
 
 void parse_UnicodeData(const char* file_name, const char* fout_name)
 {
