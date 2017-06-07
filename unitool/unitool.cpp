@@ -162,11 +162,11 @@ void parse_UnicodeData(const char* file_name, const char* fout_name)
     std::string item;
     while (std::getline(file, line)) {
         line_num++;
-        //// Comments are indicated with hash marks
-        //auto i_comment = line.find('#');
-        //if (i_comment != line.npos)
-        //  line.resize(i_comment);
-        //// got line without comment
+        // Comments are indicated with hash marks
+        auto i_comment = line.find('#');
+        if (i_comment != line.npos)
+            line.resize(i_comment);
+        // got line without comment
         if (line.length() > 0) {
             try {
                 std::size_t pos = 0;
@@ -199,15 +199,24 @@ void parse_UnicodeData(const char* file_name, const char* fout_name)
     }
 }
 
+inline static void AsciiTrimSpaceTabs(const char*& first, const char*& last) {
+    auto ascii_ws = [](char c) { return c == ' ' || c == '\t'; };
+    // trim space
+    while (first < last && ascii_ws(*first)) first++;
+    while (first < last && ascii_ws(*(last - 1))) last--;
+}
+
 std::string get_column(const std::string& line, std::size_t& pos) {
     // Columns (c1, c2,...) are separated by semicolons
     std::size_t pos_end = line.find(';', pos);
     if (pos_end == line.npos) pos_end = line.length();
 
-    std::string output(line.substr(pos, pos_end - pos));
+    // Leading and trailing spaces and tabs in each column are ignored
+    const char* first = line.data() + pos;
+    const char* last = line.data() + pos_end;
+    AsciiTrimSpaceTabs(first, last);
 
     // skip ';'
     pos = pos_end < line.length() ? pos_end + 1 : pos_end;
-    return output;
+    return std::string(first, last);
 }
-
