@@ -8,17 +8,39 @@
 #include <vector>
 
 
-static void parse_UnicodeData(const char* file_name, const char* fout_name);
+enum class DataType {
+    NONE,
+    Category_M,
+    // DerivedBidiClass.txt
+    Bidi_Class,
+    // DerivedCombiningClass.txt
+    Combining_Class_Virama,
+};
+
+static void parse_UnicodeData(const char* file_name, const char* fout_name, DataType dtype);
 static std::string get_column(const std::string& line, std::size_t& pos);
 
 int main(int argc, char* argv[])
 {
-    if (argc > 2) {
-        parse_UnicodeData(argv[1], argv[2]);
-    } else {
-        std::cerr << "unitool UnicodeData.txt" << std::endl;
+    DataType dtype = DataType::NONE;
+    if (argc > 3 && argv[3][0] == '-') {
+        switch (argv[3][1]) {
+        case 'M':
+            dtype = DataType::Category_M;
+            break;
+        case 'B':
+            dtype = DataType::Bidi_Class;
+            break;
+        case 'V':
+            dtype = DataType::Combining_Class_Virama;
+            break;
+        }
     }
-
+    if (dtype != DataType::NONE) {
+        parse_UnicodeData(argv[1], argv[2], dtype);
+    } else {
+        std::cerr << "unitool Data.txt Output.json -M|-B" << std::endl;
+    }
     return 0;
 }
 
@@ -91,9 +113,10 @@ public:
     // CodePointRanges();
     void add(int cp0, int cp1, std::string value);
     void add(std::string cpstr, std::string value);
+    void add(std::string cpstr) { add(cpstr, std::string{}); }
 
     void sort();
-    void output_js(OutputFmt& outfmt);
+    void output_js(OutputFmt& outfmt, bool in_ranges = true);
 protected:
     std::vector<RangeItem> m_ranges;
 };
@@ -164,24 +187,35 @@ void CodePointRanges::sort() {
     });
 }
 
-void CodePointRanges::output_js(OutputFmt& outfmt) {
+void CodePointRanges::output_js(OutputFmt& outfmt, bool in_ranges) {
     std::string item;
-    for (const RangeItem& r : m_ranges) {
-        item.assign("[");
-        unsigned_to_str(r.cp0, item, 10);
-        item.append(", ");
-        unsigned_to_str(r.cp1, item, 10);
-        if (!r.value.empty())
-            item.append(", ").append(r.value);
-        item.append("]");
-        // output
-        outfmt.output(item);
+    if (in_ranges) {
+        for (const RangeItem& r : m_ranges) {
+            item.assign("[");
+            unsigned_to_str(r.cp0, item, 10);
+            item.append(", ");
+            unsigned_to_str(r.cp1, item, 10);
+            if (!r.value.empty())
+                item.append(", ").append(r.value);
+            item.append("]");
+            // output
+            outfmt.output(item);
+        }
+    } else {
+        for (const RangeItem& r : m_ranges) {
+            for (auto cp = r.cp0; cp <= r.cp1; cp++) {
+                item.resize(0);
+                unsigned_to_str(cp, item, 10);
+                // output
+                outfmt.output(item);
+            }
+        }
     }
 }
 
 // Parse input file
 
-void parse_UnicodeData(const char* file_name, const char* fout_name)
+void parse_UnicodeData(const char* file_name, const char* fout_name, DataType dtype)
 {
     std::cout << "FILE: " << file_name << std::endl;
     std::ifstream file(file_name, std::ios_base::in);
@@ -197,6 +231,7 @@ void parse_UnicodeData(const char* file_name, const char* fout_name)
 
     OutputFmt outfmt(fout, 100);
     CodePointRanges ranges;
+    bool in_ranges = (dtype != DataType::Combining_Class_Virama);
 
     int line_num = 0;
     std::string line;
@@ -217,15 +252,20 @@ void parse_UnicodeData(const char* file_name, const char* fout_name)
                 const std::string c3 = get_column(line, pos);
                 const std::string c4 = get_column(line, pos);
 
-                //// General_Category=M
-                //if (c2.find('M') != c2.npos) {
-                //  outfmt.output(value.assign("0x").append(c0));
-                //}
-
-                // Bidi_Class
-                if (c1 != "L")
-                    ranges.add(c0, value.assign("\"").append(c1).append("\""));
-
+                switch(dtype) {
+                case DataType::Category_M:
+                    if (c2.length() > 0 && c2[0] == 'M')
+                        ranges.add(c0);
+                    break;
+                case DataType::Bidi_Class:
+                    if (c1 != "L")
+                        ranges.add(c0, value.assign("\"").append(c1).append("\""));
+                    break;
+                case DataType::Combining_Class_Virama:
+                    if (c1 == "9")
+                        ranges.add(c0);
+                    break;
+                }
             }
             catch (std::exception& ex) {
                 std::cerr << "ERROR: " << ex.what() << std::endl;
@@ -236,7 +276,7 @@ void parse_UnicodeData(const char* file_name, const char* fout_name)
 
     // output
     ranges.sort();
-    ranges.output_js(outfmt);
+    ranges.output_js(outfmt, in_ranges);
 }
 
 inline static void AsciiTrimSpaceTabs(const char*& first, const char*& last) {
