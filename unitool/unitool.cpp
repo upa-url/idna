@@ -10,6 +10,9 @@
 
 enum class DataType {
     NONE,
+    // IdnaMappingTable.txt
+    IdnaMappingTable,
+    // UnicodeData.txt
     Category_M,
     // DerivedBidiClass.txt
     Bidi_Class,
@@ -27,6 +30,9 @@ int main(int argc, char* argv[])
     DataType dtype = DataType::NONE;
     if (argc > 3 && argv[3][0] == '-') {
         switch (argv[3][1]) {
+        case 'I':
+            dtype = DataType::IdnaMappingTable;
+            break;
         case 'M':
             dtype = DataType::Category_M;
             break;
@@ -44,7 +50,7 @@ int main(int argc, char* argv[])
     if (dtype != DataType::NONE) {
         parse_UnicodeData(argv[1], argv[2], dtype);
     } else {
-        std::cerr << "unitool Data.txt Output.json -M|-B" << std::endl;
+        std::cerr << "unitool Data.txt Output.json -I|-M|-B|-V|-J" << std::endl;
     }
     return 0;
 }
@@ -258,6 +264,15 @@ void parse_UnicodeData(const char* file_name, const char* fout_name, DataType dt
                 const std::string c4 = get_column(line, pos);
 
                 switch(dtype) {
+                case DataType::IdnaMappingTable:
+                    value.assign("\"").append(c1).append("\"");
+                    if (!c2.empty()) {
+                        value.append(",[");
+                        value.append(c2); //TODO-TODO-TODO
+                        value.append("]");
+                    }
+                    ranges.add(c0, value);
+                    break;
                 case DataType::Category_M:
                     if (c2.length() > 0 && c2[0] == 'M')
                         ranges.add(c0);
