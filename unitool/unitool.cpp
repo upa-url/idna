@@ -171,7 +171,9 @@ void CodePointRanges::output_js(OutputFmt& outfmt) {
         unsigned_to_str(r.cp0, item, 10);
         item.append(", ");
         unsigned_to_str(r.cp1, item, 10);
-        item.append(", ").append(r.value).append("]");
+        if (!r.value.empty())
+            item.append(", ").append(r.value);
+        item.append("]");
         // output
         outfmt.output(item);
     }
