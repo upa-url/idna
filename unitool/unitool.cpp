@@ -248,6 +248,22 @@ void CodePointRanges::output_js(OutputFmt& outfmt, bool in_ranges) {
     }
 }
 
+// Split
+
+template<class InputIt, class T, class FunT>
+inline void split(InputIt first, InputIt last, const T& delim, FunT output) {
+    auto start = first;
+    for (auto it = first; it != last;) {
+        if (*it == delim) {
+            output(start, it);
+            start = ++it;
+        } else {
+            it++;
+        }
+    }
+    output(start, last);
+}
+
 // Parse input file
 
 void parse_UnicodeData(const char* file_name, const char* fout_name, DataType dtype)
@@ -292,7 +308,12 @@ void parse_UnicodeData(const char* file_name, const char* fout_name, DataType dt
                     value.assign("\"").append(c1).append("\"");
                     if (!c2.empty()) {
                         value.append(",[");
-                        value.append(c2); //TODO-TODO-TODO
+                        // parse c2
+                        bool first = true;
+                        split(c2.data(), c2.data() + c2.length(), ' ', [&first,&value](const char* it0, const char* it1) {
+                            if (first) first = false; else value += ',';
+                            unsigned_to_str<int>(hexstr_to_int(it0, it1), value, 10);
+                        });
                         value.append("]");
                     }
                     ranges.add(c0, value);
