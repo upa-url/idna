@@ -127,6 +127,7 @@ public:
     void add(std::string cpstr) { add(cpstr, std::string{}); }
 
     void sort();
+    void check();
     void output_js(OutputFmt& outfmt, bool in_ranges = true);
 protected:
     std::vector<RangeItem> m_ranges;
@@ -196,6 +197,29 @@ void CodePointRanges::sort() {
     std::sort(m_ranges.begin(), m_ranges.end(), [](const RangeItem &a, const RangeItem &b){
         return a.cp0 < b.cp0;
     });
+}
+
+void CodePointRanges::check() {
+    const RangeItem* rPrev = nullptr;
+    for (const RangeItem& r : m_ranges) {
+        if (r.cp0 > r.cp1) {
+            std::cerr << "Invalid: " << r.cp0 << " > " << r.cp1 << ": " << r.value << std::endl;
+        }
+        if (rPrev) {
+            const bool same_start = rPrev->cp0 == r.cp0;
+            const bool unordered = rPrev->cp0 > r.cp0;
+            const bool overlaps = rPrev->cp1 >= r.cp0;
+            if (same_start || unordered || overlaps) {
+                if (same_start) std::cerr << "[Same start]";
+                if (unordered) std::cerr << "[Unordered]";
+                if (overlaps) std::cerr << "[Overlaps]";
+                std::cerr << ":\n";
+                std::cerr << " 1) " << rPrev->cp0 << ".." << rPrev->cp1 << ": " << rPrev->value << std::endl;
+                std::cerr << " 2) " << r.cp0 << ".." << r.cp1 << ": " << r.value << std::endl;
+            }
+        }
+        rPrev = &r;
+    }
 }
 
 void CodePointRanges::output_js(OutputFmt& outfmt, bool in_ranges) {
@@ -300,6 +324,7 @@ void parse_UnicodeData(const char* file_name, const char* fout_name, DataType dt
 
     // output
     ranges.sort();
+    ranges.check();
     ranges.output_js(outfmt, in_ranges);
 }
 
