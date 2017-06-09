@@ -290,6 +290,31 @@ inline void split(InputIt first, InputIt last, const T& delim, FunT output) {
     output(start, last);
 }
 
+// Utility
+
+inline static void AsciiTrimSpaceTabs(const char*& first, const char*& last) {
+    auto ascii_ws = [](char c) { return c == ' ' || c == '\t'; };
+    // trim space
+    while (first < last && ascii_ws(*first)) first++;
+    while (first < last && ascii_ws(*(last - 1))) last--;
+}
+
+std::string get_column(const std::string& line, std::size_t& pos) {
+    // Columns (c1, c2,...) are separated by semicolons
+    std::size_t pos_end = line.find(';', pos);
+    if (pos_end == line.npos) pos_end = line.length();
+
+    // Leading and trailing spaces and tabs in each column are ignored
+    const char* first = line.data() + pos;
+    const char* last = line.data() + pos_end;
+    AsciiTrimSpaceTabs(first, last);
+
+    // skip ';'
+    pos = pos_end < line.length() ? pos_end + 1 : pos_end;
+    return std::string(first, last);
+}
+
+
 // Parse input file
 
 void parse_UnicodeData(const char* file_name, const char* fout_name, DataType dtype)
@@ -327,14 +352,14 @@ void parse_UnicodeData(const char* file_name, const char* fout_name, DataType dt
                 const std::string c1 = get_column(line, pos);
                 const std::string c2 = get_column(line, pos);
 
-                switch(dtype) {
+                switch (dtype) {
                 case DataType::IdnaMappingTable:
                     value.assign("\"").append(c1).append("\"");
                     if (!c2.empty()) {
                         value.append(",[");
                         // parse c2
                         bool first = true;
-                        split(c2.data(), c2.data() + c2.length(), ' ', [&first,&value](const char* it0, const char* it1) {
+                        split(c2.data(), c2.data() + c2.length(), ' ', [&first, &value](const char* it0, const char* it1) {
                             if (first) first = false; else value += ',';
                             unsigned_to_str<int>(hexstr_to_int(it0, it1), value, 10);
                         });
@@ -372,26 +397,4 @@ void parse_UnicodeData(const char* file_name, const char* fout_name, DataType dt
     ranges.check();
     ranges.merge();
     ranges.output_js(outfmt, in_ranges);
-}
-
-inline static void AsciiTrimSpaceTabs(const char*& first, const char*& last) {
-    auto ascii_ws = [](char c) { return c == ' ' || c == '\t'; };
-    // trim space
-    while (first < last && ascii_ws(*first)) first++;
-    while (first < last && ascii_ws(*(last - 1))) last--;
-}
-
-std::string get_column(const std::string& line, std::size_t& pos) {
-    // Columns (c1, c2,...) are separated by semicolons
-    std::size_t pos_end = line.find(';', pos);
-    if (pos_end == line.npos) pos_end = line.length();
-
-    // Leading and trailing spaces and tabs in each column are ignored
-    const char* first = line.data() + pos;
-    const char* last = line.data() + pos_end;
-    AsciiTrimSpaceTabs(first, last);
-
-    // skip ';'
-    pos = pos_end < line.length() ? pos_end + 1 : pos_end;
-    return std::string(first, last);
 }
