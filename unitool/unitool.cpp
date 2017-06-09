@@ -12,7 +12,7 @@ enum class DataType {
     NONE,
     // IdnaMappingTable.txt
     IdnaMappingTable,
-    // UnicodeData.txt
+    // DerivedGeneralCategory.txt
     Category_M,
     // DerivedBidiClass.txt
     Bidi_Class,
@@ -109,6 +109,8 @@ public:
     struct RangeItem {
         int cp0, cp1;
         std::string value;
+        // constructors
+        RangeItem() : cp0(0), cp1(0) {}
         RangeItem(int acp0, int acp1, std::string avalue)
             : cp0(acp0)
             , cp1(acp1)
@@ -119,6 +121,13 @@ public:
             , cp1(src.cp1)
             , value(std::move(src.value))
         {}
+        // assignment
+        RangeItem& operator=(RangeItem&& src) {
+            cp0 = src.cp0;
+            cp1 = src.cp1;
+            value = std::move(src.value);
+            return *this;
+        }
     };
 
     // CodePointRanges();
@@ -128,6 +137,7 @@ public:
 
     void sort();
     void check();
+    void merge();
     void output_js(OutputFmt& outfmt, bool in_ranges = true);
 protected:
     std::vector<RangeItem> m_ranges;
@@ -222,6 +232,22 @@ void CodePointRanges::check() {
     }
 }
 
+void CodePointRanges::merge() {
+    if (m_ranges.size() < 2) return;
+
+    size_t ilast = 0;
+    for (size_t ind = 1; ind < m_ranges.size(); ind++) {
+        RangeItem& rlast = m_ranges[ilast];
+        RangeItem& r = m_ranges[ind];
+        if (rlast.cp1 + 1 == r.cp0 && rlast.value == r.value) {
+            rlast.cp1 = r.cp1;
+        } else if (++ilast < ind) {
+            m_ranges[ilast] = std::move(r);
+        }
+    }
+    m_ranges.resize(ilast + 1);
+}
+
 void CodePointRanges::output_js(OutputFmt& outfmt, bool in_ranges) {
     std::string item;
     if (in_ranges) {
@@ -300,8 +326,6 @@ void parse_UnicodeData(const char* file_name, const char* fout_name, DataType dt
                 const std::string c0 = get_column(line, pos);
                 const std::string c1 = get_column(line, pos);
                 const std::string c2 = get_column(line, pos);
-                const std::string c3 = get_column(line, pos);
-                const std::string c4 = get_column(line, pos);
 
                 switch(dtype) {
                 case DataType::IdnaMappingTable:
@@ -319,7 +343,7 @@ void parse_UnicodeData(const char* file_name, const char* fout_name, DataType dt
                     ranges.add(c0, value);
                     break;
                 case DataType::Category_M:
-                    if (c2.length() > 0 && c2[0] == 'M')
+                    if (c1.length() > 0 && c1[0] == 'M')
                         ranges.add(c0);
                     break;
                 case DataType::Bidi_Class:
@@ -346,6 +370,7 @@ void parse_UnicodeData(const char* file_name, const char* fout_name, DataType dt
     // output
     ranges.sort();
     ranges.check();
+    ranges.merge();
     ranges.output_js(outfmt, in_ranges);
 }
 
