@@ -324,6 +324,7 @@ bool ToASCII(std::u16string& domain, Option options) {
             }
 
             // A3 - to Punycode
+            const size_t label_start_ind = encoded.length();
             if (std::any_of(label, label_end, [](char16_t ch) { return ch >= 0x80; })) {
                 // has non-ASCII
                 std::u16string alabel;
@@ -342,7 +343,7 @@ bool ToASCII(std::u16string& domain, Option options) {
 
             // A4 - DNS length restrictions
             if (has(options, Option::VerifyDnsLength) && !is_root) {
-                const size_t label_length = label_end - label;
+                const size_t label_length = encoded.length() - label_start_ind;
                 // A4_2
                 if (label_length < 1 || label_length > 63)
                     ok = false;
