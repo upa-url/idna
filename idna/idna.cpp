@@ -179,7 +179,8 @@ static bool validate_label(const char16_t* label, const char16_t* label_end, Opt
                 } else if (cp == 0x200D) {
                     //  ZERO WIDTH JOINER
                     if (start == label ||
-                        !(getCharInfo(prevCodePoint(label, start) & CAT_Virama))) {
+                        !(getCharInfo(prevCodePoint(label, start)) & CAT_Virama)
+                        ) {
                         return false;
                     }
                 }
