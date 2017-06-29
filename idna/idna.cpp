@@ -90,10 +90,10 @@ static bool processing(std::u16string& domain, Option options) {
         }
         // P4 - Convert/Validate
         if (label_end - label >= 4 && label[0] == 'x' && label[1] == 'n' && label[2] == '-' && label[3] == '-') {
-            std::u16string alabel;
-            if (punycode::decode(alabel, label + 4, label_end)) {
-                error = error || !validate_label(alabel.data(), alabel.data() + alabel.length(), options & ~Option::Transitional, true, bidiRes);
-                decoded.append(alabel);
+            std::u16string ulabel;
+            if (punycode::decode(ulabel, label + 4, label_end)) {
+                error = error || !validate_label(ulabel.data(), ulabel.data() + ulabel.length(), options & ~Option::Transitional, true, bidiRes);
+                decoded.append(ulabel);
             } else {
                 error = true; // punycode decode error
                 decoded.append(label, label_end);
@@ -326,13 +326,13 @@ bool ToASCII(std::u16string& domain, Option options) {
             // A3 - to Punycode
             if (std::any_of(label, label_end, [](char16_t ch) { return ch >= 0x80; })) {
                 // has non-ASCII
-                std::u16string ulabel;
-                if (punycode::encode(ulabel, label, label_end)) {
+                std::u16string alabel;
+                if (punycode::encode(alabel, label, label_end)) {
                     encoded.push_back('x');
                     encoded.push_back('n');
                     encoded.push_back('-');
                     encoded.push_back('-');
-                    encoded.append(ulabel);
+                    encoded.append(alabel);
                 } else {
                     encoded.append(label, label_end);
                 }
