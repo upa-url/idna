@@ -1,8 +1,8 @@
 #include "idna_test.h"
 
 // conversion
+#include <algorithm>
 #include <codecvt>
-//#include <locale>
 
 // IDNA (UTS46)
 #include "idna/idna.h"
@@ -44,6 +44,27 @@ namespace idna_test {
             idna::Option::CheckJoiners |
             idna::Option::UseSTD3ASCIIRules
             );
+
+        // IdnaTest.txt (10.0.0) still have incorrect tests for toUnicode with error code [A4_2]
+        // XXX: To pass them toUnicode must return error if returned domain has empty non-root label
+        if (res) {
+            auto domain_b = domain.begin();
+            auto domain_e = domain.end();
+            if (domain_b != domain_e) {
+                auto start = domain_b;
+                while (start != domain_e) { // while non-root
+                    auto it = std::find(start, domain_e, '.');
+                    if (start == it) { // is empty
+                        res = false;
+                        break;
+                    }
+                    if (it == domain_e) break;
+                    start = ++it; // skip delimiter
+                }
+            } else {
+                res = false;
+            }
+        }
 
         // to utf-8
         output = res ? conv16.to_bytes(domain) : "";
