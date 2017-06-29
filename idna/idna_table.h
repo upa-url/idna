@@ -29,7 +29,17 @@ const uint32_t CAT_Bidi_ES_CS_ET_ON_BN = 0x4000 << 16;
 const uint32_t CAT_Bidi_NSM  = 0x8000 << 16;
 
 // BEGIN-GENERATED
-// ... TODO ...
+const size_t blockShift = 4;
+const uint32_t blockMask = 0xF;
+const uint32_t defaultStart = 0x2FA1E;
+const uint32_t defaultValue = 0;
+const uint32_t specRange1 = 0xE0100;
+const uint32_t specRange2 = 0xE01EF;
+const uint32_t specValue = 0x20000;
+
+extern uint32_t blockData[];
+extern uint16_t blockIndex[];
+extern char16_t allCharsTo[];
 // END-GENERATED
 
 
@@ -43,6 +53,35 @@ inline uint32_t getValidMask(bool useSTD3ASCIIRules, bool transitional) {
     return transitional ? status_mask : (status_mask & ~CP_MAPPED);
 }
 
-// TODO
+inline uint32_t getCharInfo(uint32_t cp) {
+    if (cp >= defaultStart) {
+        if (cp >= specRange1 && cp <= specRange2) {
+            return specValue;
+        }
+        return defaultValue;
+    }
+    return blockData[(blockIndex[cp >> blockShift] << blockShift) | (cp & blockMask)];
+}
+
+template <class StrT>
+inline size_t apply_mapping(uint32_t val, StrT& output) {
+    if (val & MAP_TO_ONE) {
+        output.push_back(val & 0xFFFF);
+        return 1;
+    }
+    if (val & 0xFFFF) {
+        size_t ind;
+        size_t len = (val & 0xFFFF) >> 13;
+        if (len < 7) {
+            ind = val & 0x1FFF;
+        } else {
+            len += (val >> 8) & 0x1F;
+            ind = val & 0xFF;
+        }
+        output.append(allCharsTo + ind, allCharsTo + ind + len);
+        return len;
+    }
+    return 0;
+}
 
 #endif
