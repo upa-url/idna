@@ -7,11 +7,16 @@
 #include <cassert>
 #include <cstdint>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
+#include <limits>
 #include <string>
 
 void run_idna_tests(const char* file_name);
-static std::string get_column(const std::string& line, std::size_t& pos);
+void run_punycode_tests(const char* file_name);
+static std::string get_column8(const std::string& line, std::size_t& pos);
+static std::u16string get_column16(const std::string& line, std::size_t& pos);
+static std::u32string get_column32(const std::string& line, std::size_t& pos);
 static bool is_error(const std::string& col);
 
 int main()
@@ -19,6 +24,8 @@ int main()
     run_idna_tests("test-data/IdnaTest.txt");
 //  run_idna_tests("test-data/IdnaTest-9.0.0.txt");
 //  run_idna_tests("test-data/IdnaTest-7.0.0.txt");
+
+    run_punycode_tests("test-data/punycode-test.txt");
 
     return 0;
 }
@@ -50,11 +57,11 @@ void run_idna_tests(const char* file_name)
         if (line.length() > 0) {
             try {
                 std::size_t pos = 0;
-                const std::string c1 = get_column(line, pos);
-                const std::string c2 = get_column(line, pos);
-                const std::string c3 = get_column(line, pos);
-                const std::string c4 = get_column(line, pos);
-                const std::string c5 = get_column(line, pos);
+                const std::string c1 = get_column8(line, pos);
+                const std::string c2 = get_column8(line, pos);
+                const std::string c3 = get_column8(line, pos);
+                const std::string c4 = get_column8(line, pos);
+                const std::string c5 = get_column8(line, pos);
 
                 // source
                 const std::string& source(c2);
@@ -159,7 +166,8 @@ inline static int unescape_code_point(const char*& first, const char* last) {
     throw std::runtime_error("invalid escape");
 }
 
-inline static void code_point_to_utf8(int code_point, std::string& output) {
+// utf-8
+inline void code_point_to_utf(int code_point, std::string& output) {
     if (code_point < 0x80) {
         output.push_back(static_cast<char>(code_point));
     } else {
@@ -178,7 +186,28 @@ inline static void code_point_to_utf8(int code_point, std::string& output) {
     }
 }
 
-std::string get_column(const std::string& line, std::size_t& pos) {
+// utf-16
+inline void code_point_to_utf(int cp, std::u16string& output) {
+    if (cp <= 0xFFFF) {
+        output.push_back(static_cast<char16_t>(cp));
+    } else if (cp <= 0x10FFFF) {
+        // http://unicode.org/faq/utf_bom.html#utf16-4
+        // https://en.wikipedia.org/wiki/UTF-16#Description
+        const uint32_t cc = cp - 0x10000;
+        char16_t cu1 = static_cast<char16_t>(0xD800 | (cc >> 10)); // high surrogate
+        char16_t cu2 = static_cast<char16_t>(0xDC00 | (cc & 0x03FF)); // low surrogate
+        output.push_back(cu1);
+        output.push_back(cu2);
+    }
+}
+
+// utf-32
+inline void code_point_to_utf(int cp, std::u32string& output) {
+    output.push_back(static_cast<char32_t>(cp));
+}
+
+template <class CharT>
+inline std::basic_string<CharT> get_column(const std::string& line, std::size_t& pos) {
     // Columns (c1, c2,...) are separated by semicolons
     std::size_t pos_end = line.find(';', pos);
     if (pos_end == line.npos) pos_end = line.length();
@@ -190,12 +219,12 @@ std::string get_column(const std::string& line, std::size_t& pos) {
 
     // unescape \uXXXX or \x{XXXX}
     const char* p = std::find(first, last, '\\');
-    std::string output(first, p);
+    std::basic_string<CharT> output(first, p);
     while (p != last) {
         const char ch = *p;
         if (ch == '\\') {
             int code_point = unescape_code_point(p, last);
-            code_point_to_utf8(code_point, output);
+            code_point_to_utf(code_point, output);
         } else {
             output.push_back(ch);
             p++;
@@ -207,6 +236,112 @@ std::string get_column(const std::string& line, std::size_t& pos) {
     return output;
 }
 
+static std::string get_column8(const std::string& line, std::size_t& pos) {
+    return get_column<char>(line, pos);
+}
+
+static std::u16string get_column16(const std::string& line, std::size_t& pos) {
+    return get_column<char16_t>(line, pos);
+}
+
+static std::u32string get_column32(const std::string& line, std::size_t& pos) {
+    return get_column<char32_t>(line, pos);
+}
+
 inline bool is_error(const std::string& col) {
     return col.length() >= 2 && col[0] == '[' && col[col.length() - 1] == ']';
+}
+
+// stream operator
+template <class CharT, class Traits, class StrT>
+inline std::basic_ostream<CharT, Traits>& output_str(std::basic_ostream<CharT, Traits>& os, const StrT& str, const int width) {
+    const uint32_t maxCh = std::numeric_limits<CharT>::max();
+    for (auto ch : str) {
+        if (ch <= maxCh) {
+            os << static_cast<CharT>(ch);
+        } else {
+            os << "\\x";
+            auto flags_save = os.flags();
+            auto fill_save = os.fill('0');
+            os << std::hex << std::uppercase << std::setw(width) << ch;
+            os.fill(fill_save);
+            os.flags(flags_save);
+        }
+    }
+    return os;
+}
+
+template <class CharT, class Traits>
+std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, const std::u16string& str) {
+    return output_str(os, str, 4);
+}
+
+template <class CharT, class Traits>
+std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, const std::u32string& str) {
+    return output_str(os, str, 8);
+}
+
+//
+// Punycode tests
+//
+
+#include "idna/punycode.h"
+
+void run_punycode_tests(const char* file_name)
+{
+    DataDrivenTest ddt;
+    ddt.config_show_passed(false);
+    ddt.config_debug_break(false);
+
+    std::cout << "========== " << file_name << " ==========\n";
+    std::ifstream file(file_name, std::ios_base::in);
+    if (!file.is_open()) {
+        std::cerr << "Can't open tests file: " << file_name << std::endl;
+        return;
+    }
+
+    int line_num = 0;
+    std::string line;
+    std::u16string output;
+    std::string case_name;
+    while (std::getline(file, line)) {
+        line_num++;
+        // Comments are indicated with hash marks
+        auto i_comment = line.find('#');
+        if (i_comment != line.npos) {
+            if (i_comment == 0) {
+                case_name = line;
+                continue;
+            }
+            line.resize(i_comment);
+        }
+        // got line without comment
+        if (line.length() > 0) {
+            try {
+                std::size_t pos = 0;
+                const std::u16string inp_source = get_column16(line, pos);
+                const std::u16string inp_encoded = get_column16(line, pos);
+
+                // test
+                if (case_name.empty()) case_name = line;
+                ddt.test_case(case_name.c_str(), [&](DataDrivenTest::TestCase& tc) {
+                    bool ok;
+
+                    // encode to punycode
+                    ok = punycode::encode(output, inp_source.data(), inp_source.data() + inp_source.length());
+                    tc.assert_equal(inp_encoded, output, "punycode::encode");
+
+                    // decode from punycode
+                    ok = punycode::decode(output, inp_encoded.data(), inp_encoded.data() + inp_encoded.length());
+                    tc.assert_equal(inp_source, output, "punycode::decode");
+                });
+            }
+            catch (std::exception& ex) {
+                std::cerr << "ERROR: " << ex.what() << std::endl;
+                std::cerr << " LINE(" << line_num << "): " << line << std::endl;
+            }
+        }
+        case_name.clear();
+    }
+
 }
