@@ -8,7 +8,7 @@ extern "C" {
 static void appendCodePoint(std::u16string& output, uint32_t cp) {
     if (cp <= 0xFFFF) {
         output.push_back(static_cast<char16_t>(cp));
-    } else if (cp < 0x10FFFF) {
+    } else if (cp <= 0x10FFFF) {
         // http://unicode.org/faq/utf_bom.html#utf16-4
         // https://en.wikipedia.org/wiki/UTF-16#Description
         const uint32_t cc = cp - 0x10000;
