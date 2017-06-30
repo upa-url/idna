@@ -23,10 +23,11 @@ namespace punycode {
 
 bool decode(std::u16string& output, const char16_t* first, const char16_t* last) {
     std::vector<char> inp;
-    for (auto it = first; it != last;) {
-        const uint32_t cp = getCodePoint(it, last);
-        if (cp >= 0x80) return false;
-        inp.push_back(static_cast<char>(cp));
+    inp.reserve(last - first);
+    for (auto it = first; it != last; it++) {
+        const char16_t ch = *it;
+        if (ch >= 0x80) return false;
+        inp.push_back(static_cast<char>(ch));
     }
 
     size_t out_length = inp.size() * 2;
@@ -35,6 +36,7 @@ bool decode(std::u16string& output, const char16_t* first, const char16_t* last)
     const punycode_status stat = punycode_decode(inp.size(), inp.data(), &out_length, out.data(), NULL);
     if (stat == punycode_success) {
         output.clear();
+        output.reserve(out_length); // todo: if the out has cp > 0xFFFF
         for (size_t ind = 0; ind < out_length; ind++)
             appendCodePoint(output, out[ind]);
         return true;
@@ -44,6 +46,7 @@ bool decode(std::u16string& output, const char16_t* first, const char16_t* last)
 
 bool encode(std::u16string& output, const char16_t* first, const char16_t* last) {
     std::vector<punycode_uint> inp;
+    inp.reserve(last - first);
     for (auto it = first; it != last;) {
         const uint32_t cp = getCodePoint(it, last);
         inp.push_back(static_cast<punycode_uint>(cp));
@@ -55,6 +58,7 @@ bool encode(std::u16string& output, const char16_t* first, const char16_t* last)
     const punycode_status stat = punycode_encode(inp.size(), inp.data(), NULL, &out_length, out.data());
     if (stat == punycode_success) {
         output.clear();
+        output.reserve(out_length);
         for (size_t ind = 0; ind < out_length; ind++)
             output.push_back(out[ind]);
         return true;
