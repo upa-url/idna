@@ -6,6 +6,11 @@
 // UTF-16 iterate
 
 template <class T>
+inline bool is_surrogate(T ch) {
+    return (ch & 0xFFFFF800) == 0xD800;
+}
+
+template <class T>
 inline bool is_surrogate_lead(T ch) {
     return (ch & 0xFFFFFC00) == 0xD800;
 }
