@@ -91,7 +91,7 @@ static bool processing(std::u16string& domain, Option options) {
         // P4 - Convert/Validate
         if (label_end - label >= 4 && label[0] == 'x' && label[1] == 'n' && label[2] == '-' && label[3] == '-') {
             std::u16string ulabel;
-            if (punycode::decode(ulabel, label + 4, label_end)) {
+            if (punycode::decode(ulabel, label + 4, label_end) == punycode::status::success) {
                 error = error || !validate_label(ulabel.data(), ulabel.data() + ulabel.length(), options & ~Option::Transitional, true, bidiRes);
                 decoded.append(ulabel);
             } else {

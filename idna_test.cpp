@@ -335,7 +335,7 @@ void run_punycode_tests(const char* file_name)
 
                     // decode from punycode
                     output.clear();
-                    ok = punycode::decode(output, inp_encoded.data(), inp_encoded.data() + inp_encoded.length());
+                    ok = punycode::decode(output, inp_encoded.data(), inp_encoded.data() + inp_encoded.length()) == punycode::status::success;
                     tc.assert_equal(inp_source, output, "punycode::decode");
                 });
             }
