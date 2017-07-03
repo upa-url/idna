@@ -329,7 +329,7 @@ bool ToASCII(std::u16string& domain, Option options) {
             if (std::any_of(label, label_end, [](char16_t ch) { return ch >= 0x80; })) {
                 // has non-ASCII
                 std::u16string alabel;
-                if (punycode::encode(alabel, label, label_end)) {
+                if (punycode::encode(alabel, label, label_end) == punycode::status::success) {
                     encoded.push_back('x');
                     encoded.push_back('n');
                     encoded.push_back('-');
@@ -337,6 +337,7 @@ bool ToASCII(std::u16string& domain, Option options) {
                     encoded.append(alabel);
                 } else {
                     encoded.append(label, label_end);
+                    ok = false; // punycode error
                 }
             } else {
                 encoded.append(label, label_end);

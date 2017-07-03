@@ -26,6 +26,7 @@ int main()
 //  run_idna_tests("test-data/IdnaTest-7.0.0.txt");
 
     run_punycode_tests("test-data/punycode-test.txt");
+    run_punycode_tests("test-data/punycode-test-mano.txt");
 
     return 0;
 }
@@ -328,10 +329,12 @@ void run_punycode_tests(const char* file_name)
                     bool ok;
 
                     // encode to punycode
-                    ok = punycode::encode(output, inp_source.data(), inp_source.data() + inp_source.length());
+                    output.clear(); // because punycode::encode(..) appends
+                    ok = punycode::encode(output, inp_source.data(), inp_source.data() + inp_source.length()) == punycode::status::success;
                     tc.assert_equal(inp_encoded, output, "punycode::encode");
 
                     // decode from punycode
+                    output.clear();
                     ok = punycode::decode(output, inp_encoded.data(), inp_encoded.data() + inp_encoded.length());
                     tc.assert_equal(inp_source, output, "punycode::decode");
                 });
