@@ -15,9 +15,6 @@ enum class status {
 status encode(std::u16string& output, const char16_t* first, const char16_t* last);
 status decode(std::u16string& output, const char16_t* first, const char16_t* last);
 
-bool encode_OLD(std::u16string& output, const char16_t* first, const char16_t* last);
-bool decode_OLD(std::u16string& output, const char16_t* first, const char16_t* last);
-
 }
 
 #endif // PUNYCODE__H

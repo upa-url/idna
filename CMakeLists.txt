@@ -9,7 +9,7 @@ if(POLICY CMP0074)
 endif()
 
 # Project settings
-project(idna_test LANGUAGES CXX C)
+project(idna_test LANGUAGES CXX)
 
 find_package(ICU REQUIRED COMPONENTS i18n uc)
 
@@ -20,7 +20,6 @@ add_executable(idna_test
   idna/idna_table.cpp
   idna/normalize.cpp
   idna/punycode.cpp
-  punycode_rfc/punycode_rfc.c
 )
 target_link_libraries(idna_test ICU::i18n ICU::uc)
 
