@@ -121,10 +121,10 @@ status encode(std::u16string& output, const char16_t* first, const char16_t* las
     if (last - first > kMaxCodePoints) // TODO: code points!!!
         return status::overflow;
 
-    // code point's indexes array
+    // code point/index array
     std::vector<punycode_item> arrCpInd;
 
-    // Handle the basic code points and fill non basic code points array
+    // Handle the basic code points and fill code point/index array
     size_t len0 = output.length();
     size_t ind = 0;
     for (auto it = first; it != last; it++, ind++) {
