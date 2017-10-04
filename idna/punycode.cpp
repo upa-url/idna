@@ -19,7 +19,7 @@ enum {
 // basic(cp) tests whether cp is a basic code point:
 template <class T>
 inline bool basic(T cp) {
-    return static_cast<std::make_unsigned<T>::type>(cp) < 0x80;
+    return static_cast<typename std::make_unsigned<T>::type>(cp) < 0x80;
 }
 
 // delim(cp) tests whether cp is a delimiter:
