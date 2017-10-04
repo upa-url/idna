@@ -3,6 +3,7 @@
 // conversion
 #include <algorithm>
 #include <codecvt>
+#include <locale>    // std::wstring_convert
 
 // IDNA (UTS46)
 #include "idna/idna.h"
