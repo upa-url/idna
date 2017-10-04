@@ -18,13 +18,13 @@ enum {
 
 // basic(cp) tests whether cp is a basic code point:
 template <class T>
-inline bool basic(T cp) {
+static inline bool basic(T cp) {
     return static_cast<typename std::make_unsigned<T>::type>(cp) < 0x80;
 }
 
 // delim(cp) tests whether cp is a delimiter:
 template <class T>
-inline bool delim(T cp) {
+static inline bool delim(T cp) {
     return cp == delimiter;
 }
 
@@ -32,7 +32,7 @@ inline bool delim(T cp) {
 // point (for use in representing integers) in the range 0 to
 // base-1, or base if cp does not represent a value.
 
-inline punycode_uint decode_digit(punycode_uint cp) {
+static inline punycode_uint decode_digit(punycode_uint cp) {
     return cp - 48 < 10 ? cp - 22 : cp - 65 < 26 ? cp - 65 :
         cp - 97 < 26 ? cp - 97 : base;
 }
@@ -41,7 +41,7 @@ inline punycode_uint decode_digit(punycode_uint cp) {
 // (when used for representing integers) is d, which needs to be in
 // the range 0 to base-1. The lowercase form is used.
 
-inline char encode_digit(punycode_uint d) {
+static inline char encode_digit(punycode_uint d) {
     return d + 22 + 75 * (d < 26);
     /*  0..25 map to ASCII a..z */
     /* 26..35 map to ASCII 0..9 */
@@ -58,13 +58,13 @@ static const size_t kMaxCodePoints = kCodePointIndexMask + 1;
 
 typedef uint32_t punycode_item;
 
-inline punycode_item to_punycode_item(punycode_uint cp, size_t ind) {
+static inline punycode_item to_punycode_item(punycode_uint cp, size_t ind) {
     return (static_cast<punycode_item>(cp) << 11) | ind;
 }
-inline punycode_uint get_item_cp(punycode_item item) {
+static inline punycode_uint get_item_cp(punycode_item item) {
     return static_cast<punycode_uint>(item >> 11);
 }
-inline punycode_uint get_item_ind(punycode_item item) {
+static inline punycode_uint get_item_ind(punycode_item item) {
     return static_cast<punycode_uint>(item & kCodePointIndexMask);
 }
 
@@ -86,14 +86,14 @@ static punycode_uint adapt(punycode_uint delta, punycode_uint numpoints, bool fi
 
 // for decoder
 
-inline const char16_t* find_delim(const char16_t* first, const char16_t* last) {
+static inline const char16_t* find_delim(const char16_t* first, const char16_t* last) {
     for (auto it = last; it != first;) {
         if (delim(*--it)) return it;
     }
     return nullptr;
 }
 
-inline void appendCodePoint(std::u16string& output, uint32_t cp) {
+static inline void appendCodePoint(std::u16string& output, uint32_t cp) {
     if (cp <= 0xFFFF) {
         output.push_back(static_cast<char16_t>(cp));
     } else if (cp <= 0x10FFFF) {
