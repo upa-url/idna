@@ -13,6 +13,7 @@
 #include <string>
 
 void run_idna_tests(const char* file_name);
+void run_idna_tests_V2(const char* file_name);
 void run_punycode_tests(const char* file_name);
 static std::string get_column8(const std::string& line, std::size_t& pos);
 static std::u16string get_column16(const std::string& line, std::size_t& pos);
@@ -24,6 +25,7 @@ int main()
     run_idna_tests("test-data/IdnaTest.txt");
 //  run_idna_tests("test-data/IdnaTest-9.0.0.txt");
 //  run_idna_tests("test-data/IdnaTest-7.0.0.txt");
+    run_idna_tests_V2("test-data/IdnaTestV2.txt");
 
     run_punycode_tests("test-data/punycode-test.txt");
     run_punycode_tests("test-data/punycode-test-mano.txt");
@@ -110,7 +112,90 @@ void run_idna_tests(const char* file_name)
             }
         }
     }
+}
 
+void run_idna_tests_V2(const char* file_name)
+{
+    DataDrivenTest ddt;
+    ddt.config_show_passed(false);
+    ddt.config_debug_break(false);
+
+    std::cout << "========== " << file_name << " ==========\n";
+    std::ifstream file(file_name, std::ios_base::in);
+    if (!file.is_open()) {
+        std::cerr << "Can't open tests file: " << file_name << std::endl;
+        return;
+    }
+
+    int line_num = 0;
+    std::string line;
+    std::string output;
+    std::string case_name;
+    while (std::getline(file, line)) {
+        line_num++;
+        // Comments are indicated with hash marks
+        auto i_comment = line.find('#');
+        if (i_comment != line.npos)
+            line.resize(i_comment);
+        // got line without comment
+        if (line.length() > 0) {
+            try {
+                std::size_t pos = 0;
+                const std::string c1 = get_column8(line, pos);
+                const std::string c2 = get_column8(line, pos);
+                const std::string c3 = get_column8(line, pos);
+                const std::string c4 = get_column8(line, pos);
+                const std::string c5 = get_column8(line, pos);
+                const std::string c6 = get_column8(line, pos);
+                const std::string c7 = get_column8(line, pos);
+
+                // source
+                const std::string& source(c1);
+
+                // ToUnicode
+                const std::string& exp_unicode(c2.empty() ? source : c2);
+                const bool exp_unicode_ok = !is_error(c3);
+
+                // ToASCII
+                const std::string& exp_ascii(c4.empty() ? exp_unicode : c4);
+                const bool exp_ascii_ok = c5.empty() ? exp_unicode_ok : !is_error(c5);
+
+                // toAsciiT
+                const std::string& exp_asciiT(c6.empty() ? exp_ascii : c6);
+                const bool exp_asciiT_ok = c7.empty() ? exp_ascii_ok : !is_error(c7);
+
+
+                // test
+                case_name.assign("(").append(std::to_string(line_num)).append(") ").append(line);
+                ddt.test_case(case_name.c_str(), [&](DataDrivenTest::TestCase& tc) {
+                    bool ok;
+
+                    // ToUnicode
+                    ok = idna_test::toUnicode(output, source);
+                    tc.assert_equal(exp_unicode_ok, ok, "ToUnicode success");
+                    tc.assert_equal(exp_unicode, output, "ToUnicode output");
+
+                    // ToASCII
+                    ok = idna_test::toASCII(output, source, false);
+                    tc.assert_equal(exp_ascii_ok, ok, "ToASCII(non-trans.) success");
+                    if (exp_ascii_ok && ok) {
+                        tc.assert_equal(exp_ascii, output, "ToASCII(non-trans.) output");
+                    }
+
+                    // toAsciiT
+                    ok = idna_test::toASCII(output, source, true);
+                    tc.assert_equal(exp_asciiT_ok, ok, "ToASCII(trans.) success");
+                    if (exp_asciiT_ok && ok) {
+                        tc.assert_equal(exp_asciiT, output, "ToASCII(trans.) output");
+                    }
+                });
+            }
+            catch (std::exception& ex) {
+                std::cerr << "ERROR: " << ex.what() << std::endl;
+                std::cerr << " LINE(" << line_num << "): " << line << std::endl;
+            }
+        }
+    }
 }
 
 inline static void AsciiTrimSpaceTabs(const char*& first, const char*& last) {
@@ -250,7 +335,8 @@ static std::u32string get_column32(const std::string& line, std::size_t& pos) {
 }
 
 inline bool is_error(const std::string& col) {
-    return col.length() >= 2 && col[0] == '[' && col[col.length() - 1] == ']';
+    // klaida, jei "[<ne tuðèia>]"
+    return col.length() >= 3 && col[0] == '[' && col[col.length() - 1] == ']';
 }
 
 // stream operator

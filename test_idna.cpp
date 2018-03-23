@@ -70,7 +70,7 @@ namespace idna_test {
 #endif
 
         // to utf-8
-        output = res ? conv16.to_bytes(domain) : "";
+        output = conv16.to_bytes(domain);
 
         return res;
     }
