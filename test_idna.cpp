@@ -9,7 +9,29 @@
 #include "idna/idna.h"
 
 namespace {
+#if _MSC_VER >= 1900
+    // https://stackoverflow.com/q/32055357
+    static std::wstring_convert<std::codecvt_utf8_utf16<uint16_t>, uint16_t> conv16;
+
+    inline std::u16string utf16_from_bytes(const std::string& input) {
+        auto out(conv16.from_bytes(input));
+        return std::u16string(reinterpret_cast<const char16_t*>(out.data()), out.length());
+    }
+    inline std::string utf16_to_bytes(const std::u16string& input) {
+        return conv16.to_bytes(
+            reinterpret_cast<const uint16_t*>(input.data()),
+            reinterpret_cast<const uint16_t*>(input.data() + input.length()));
+    }
+#else
     static std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> conv16;
+
+    inline std::u16string utf16_from_bytes(const std::string& input) {
+        return conv16.from_bytes(input);
+    }
+    inline std::string utf16_to_bytes(const std::u16string& input) {
+        return conv16.to_bytes(input);
+    }
+#endif
 }
 
 
@@ -17,7 +39,7 @@ namespace idna_test {
 
     bool toASCII(std::string& output, const std::string& input, bool transitional) {
         // to utf-16
-        std::u16string domain(conv16.from_bytes(input));
+        std::u16string domain(utf16_from_bytes(input));
 
         bool res = idna::ToASCII(domain,
             idna::Option::VerifyDnsLength |
@@ -29,14 +51,14 @@ namespace idna_test {
             );
 
         // to utf-8
-        output = res ? conv16.to_bytes(domain) : "";
+        output = res ? utf16_to_bytes(domain) : "";
 
         return res;
     }
 
     bool toUnicode(std::string& output, const std::string& input) {
         // to utf-16
-        std::u16string domain(conv16.from_bytes(input));
+        std::u16string domain(utf16_from_bytes(input));
 
         bool res = idna::ToUnicode(domain,
             // idna::Option::VerifyDnsLength |
@@ -70,7 +92,7 @@ namespace idna_test {
 #endif
 
         // to utf-8
-        output = conv16.to_bytes(domain);
+        output = utf16_to_bytes(domain);
 
         return res;
     }
