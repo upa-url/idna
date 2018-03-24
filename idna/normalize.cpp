@@ -1,4 +1,41 @@
+// 1 - ICU; 2 - Win32
+#define THE_NFC_LIB 1
+
 #include "normalize.h"
+
+#if THE_NFC_LIB == 1
+///////////////////////////////////////////////////////////////
+// ICU NFC
+#include "unicode/normalizer2.h"
+
+
+bool normalize_nfc(std::u16string& str) {
+    if (str.empty()) return true;
+
+    // Get instance for Unicode NFC normalization
+    UErrorCode icu_error = U_ZERO_ERROR;
+    const icu::Normalizer2 *normalizer = icu::Normalizer2::getNFCInstance(icu_error);
+
+    // Normalize
+    icu::UnicodeString source((const UChar*)str.data(), str.length());
+    icu::UnicodeString dest(normalizer->normalize(source, icu_error));
+    str.assign((const char16_t*)dest.getBuffer(), dest.length());
+
+    return U_SUCCESS(icu_error);
+}
+
+bool is_normalized_nfc(const char16_t* first, const char16_t* last) {
+    // Get instance for Unicode NFC normalization
+    UErrorCode icu_error = U_ZERO_ERROR;
+    const icu::Normalizer2 *normalizer = icu::Normalizer2::getNFCInstance(icu_error);
+
+    icu::UnicodeString source((const UChar*)first, last - first);
+    return !!normalizer->isNormalized(source, icu_error);
+}
+
+#elif THE_NFC_LIB == 2
+///////////////////////////////////////////////////////////////
+// Windows NFC
 #include <windows.h>
 
 bool normalize_nfc(std::u16string& str) {
@@ -34,3 +71,5 @@ bool normalize_nfc(std::u16string& str) {
 bool is_normalized_nfc(const char16_t* first, const char16_t* last) {
     return !! IsNormalizedString(NormalizationC, reinterpret_cast<const wchar_t*>(first), last - first);
 }
+
+#endif
