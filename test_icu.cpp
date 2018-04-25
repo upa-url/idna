@@ -87,9 +87,9 @@ namespace idna_test {
 #else
             const uint32_t idna_err = info.errors;
 #endif
-            if (U_SUCCESS(err) && idna_err == 0) {
+            if (U_SUCCESS(err)) {
                 output.assign(buff, output_length);
-                return true;
+                return idna_err == 0;
             }
 
             if (err != U_BUFFER_OVERFLOW_ERROR || info.errors)
