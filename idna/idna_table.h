@@ -1,6 +1,7 @@
 #ifndef IDNA_TABLE_H
 #define IDNA_TABLE_H
 
+#include <cstddef>
 #include <cstdint>
 
 const uint32_t CP_DISALLOWED = 0;
