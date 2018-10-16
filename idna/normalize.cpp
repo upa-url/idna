@@ -1,5 +1,7 @@
-// 1 - ICU; 2 - Win32
-#define THE_NFC_LIB 1
+// 1 - ICU; 2 - Win32; 3 - JS (emsdk)
+#if !defined(THE_NFC_LIB)
+# define THE_NFC_LIB 1
+#endif
 
 #include "normalize.h"
 
@@ -70,6 +72,39 @@ bool normalize_nfc(std::u16string& str) {
 
 bool is_normalized_nfc(const char16_t* first, const char16_t* last) {
     return !! IsNormalizedString(NormalizationC, reinterpret_cast<const wchar_t*>(first), last - first);
+}
+
+#elif THE_NFC_LIB == 3
+///////////////////////////////////////////////////////////////
+// JS NFC (emsdk)
+#include <emscripten.h>
+#include <stdlib.h>  // free
+
+bool normalize_nfc(std::u16string& str) {
+    char16_t *res = (char16_t*)EM_ASM_INT({
+        var inp = UTF16ToString($0);
+        var res = inp.normalize('NFC');
+
+        var lengthBytes = (res.length + 1) * 2;
+        var stringOnHeap = _malloc(lengthBytes);
+        stringToUTF16(res, stringOnHeap, lengthBytes);
+        return stringOnHeap;
+    }, str.c_str());
+
+    str.assign(res);
+
+    free(res);
+
+    return true;
+}
+
+bool is_normalized_nfc(const char16_t* first, const char16_t* last) {
+    std::u16string str(first, last);
+
+    return !! EM_ASM_INT({
+        var inp = UTF16ToString($0);
+        return inp.normalize('NFC') === inp;
+    }, str.c_str());
 }
 
 #endif
