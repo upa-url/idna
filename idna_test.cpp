@@ -2,7 +2,6 @@
 //
 
 #include "idna_test.h"
-#include "ddt/DataDrivenTest.hpp"
 #include <algorithm>
 #include <cassert>
 #include <cstdint>
@@ -11,6 +10,16 @@
 #include <iostream>
 #include <limits>
 #include <string>
+
+// clang requires to decalare 'operator <<' prior to the call site (DataDrivenTest::assert_equal)
+template <class CharT, class Traits>
+inline std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, const std::u16string& str);
+
+template <class CharT, class Traits>
+inline std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, const std::u32string& str);
+
+#include "ddt/DataDrivenTest.hpp"
+
 
 void run_idna_tests(const char* file_name);
 void run_idna_tests_V2(const char* file_name);
@@ -335,7 +344,7 @@ static std::u32string get_column32(const std::string& line, std::size_t& pos) {
 }
 
 inline bool is_error(const std::string& col) {
-    // klaida, jei "[<ne tuðèia>]"
+    // klaida, jei "[<ne tuÅ¡Äia>]"
     return col.length() >= 3 && col[0] == '[' && col[col.length() - 1] == ']';
 }
 
@@ -359,12 +368,12 @@ inline std::basic_ostream<CharT, Traits>& output_str(std::basic_ostream<CharT, T
 }
 
 template <class CharT, class Traits>
-std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, const std::u16string& str) {
+inline std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, const std::u16string& str) {
     return output_str(os, str, 4);
 }
 
 template <class CharT, class Traits>
-std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, const std::u32string& str) {
+inline std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, const std::u32string& str) {
     return output_str(os, str, 8);
 }
 
