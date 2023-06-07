@@ -506,12 +506,14 @@ inline std::string unsigned_to_numstr(UIntT num, int base) {
 }
 
 struct char_item {
-    char_item() : value(0) {}
-    char_item(char_item&& src)
-        : value(src.value)
-        , charsTo(std::move(src.charsTo))
-    {}
-    uint32_t value;
+    char_item() = default;
+    char_item(char_item&& src) noexcept = default;
+
+    operator uint32_t() const noexcept {
+        return value;
+    }
+
+    uint32_t value = 0;
     std::u16string charsTo;
 };
 
@@ -713,6 +715,54 @@ void fff() {
 #endif
 }
 #endif
+
+template <typename ValT>
+struct special_ranges {
+    using value_type = ValT;
+
+    struct range_value {
+        std::size_t from{}, to{};
+        value_type value{};
+
+        template <class T>
+        range_value(const std::vector<T>& values_arr, std::size_t ind)
+            : from{ ind }
+            , to{ ind }
+            , value{ values_arr[ind] }
+        {}
+    };
+    std::vector<range_value> m_range;
+
+    template <class T>
+    special_ranges(const std::vector<T>& values_arr) {
+        constexpr std::size_t max_range_count = 2;
+
+        if (values_arr.size() > 0) {
+            // add main range
+            m_range.emplace_back(values_arr, values_arr.size() - 1);
+            range_value* r = &m_range[0];
+
+            for (std::ptrdiff_t ind = static_cast<std::ptrdiff_t>(values_arr.size()) - 2; ind >= 0; --ind) {
+                value_type val = values_arr[ind];
+                if (val == r->value) {
+                    r->from = ind;
+                } else if (val == m_range[0].value) {
+                    // fall back to main range
+                    r = &m_range[0];
+                    r->from = ind;
+                } else if (m_range.size() < max_range_count) {
+                    // add new range
+                    m_range.emplace_back(values_arr, static_cast<std::size_t>(ind));
+                    r = std::addressof(m_range.back());
+                } else
+                    break;
+            }
+            // main range includes other ranges
+            if (m_range.size() >= 2 && m_range[0].from > m_range.back().from)
+                m_range[0].from = m_range.back().from;
+        }
+    }
+};
 
 
 template <class T>
@@ -951,7 +1001,10 @@ void make_mapping_table(std::string data_path) {
     //=======================================================================
     // Output Data
 
-    const size_t count_chars = 0x2FA1E; /*0x30000*/
+    special_ranges<uint32_t> spec(arrChars);
+    //TODO spec.range.size() >= 2
+
+    const size_t count_chars = spec.m_range[0].from;
     const int index_levels = 1; // 1 arba 2
 
     // calculate 32bit block size
@@ -995,9 +1048,9 @@ void make_mapping_table(std::string data_path) {
     fout_head << "const uint32_t blockMask = " << unsigned_to_numstr(binf.code_point_mask(), 16) << ";\n";
     fout_head << "const uint32_t defaultStart = " << unsigned_to_numstr(count_chars, 16) << ";\n";
     fout_head << "const uint32_t defaultValue = " << unsigned_to_numstr(arrChars[count_chars].value, 16) << ";\n";
-    fout_head << "const uint32_t specRange1 = " << unsigned_to_numstr(0xE0100, 16) << ";\n"; //TODO
-    fout_head << "const uint32_t specRange2 = " << unsigned_to_numstr(0xE01EF, 16) << ";\n"; //TODO
-    fout_head << "const uint32_t specValue = " << unsigned_to_numstr(arrChars[0xE0100].value, 16) << ";\n"; //TODO
+    fout_head << "const uint32_t specRange1 = " << unsigned_to_numstr(spec.m_range[1].from /*0xE0100*/, 16) << ";\n";
+    fout_head << "const uint32_t specRange2 = " << unsigned_to_numstr(spec.m_range[1].to /*0xE01EF*/, 16) << ";\n";
+    fout_head << "const uint32_t specValue = " << unsigned_to_numstr(arrChars[spec.m_range[1].from].value, 16) << ";\n";
     fout_head << "\n";
     // ---
 
