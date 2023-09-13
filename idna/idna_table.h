@@ -32,7 +32,7 @@ const uint32_t CAT_Bidi_NSM  = 0x8000 << 16;
 // BEGIN-GENERATED
 const size_t blockShift = 4;
 const uint32_t blockMask = 0xF;
-const uint32_t defaultStart = 0x2FA1E;
+const uint32_t defaultStart = 0x323B0;
 const uint32_t defaultValue = 0;
 const uint32_t specRange1 = 0xE0100;
 const uint32_t specRange2 = 0xE01EF;
