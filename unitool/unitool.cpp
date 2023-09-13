@@ -150,7 +150,7 @@ OutputFmt::OutputFmt(std::ostream& fout, size_t max_line_len, Style style)
     , m_style(style)
     , m_max_line_len(max_line_len)
 {
-    static char* strOpen[3] = { "", "{", "[" };
+    static const char* strOpen[3] = { "", "{", "[" };
     m_fout << strOpen[static_cast<int>(m_style)] << std::endl;
 }
 
@@ -173,7 +173,7 @@ void OutputFmt::output(const std::string& item) {
 }
 
 OutputFmt::~OutputFmt() {
-    static char* strClose[3] = { "", "}", "]" };
+    static const char* strClose[3] = { "", "}", "]" };
     m_fout << strClose[static_cast<int>(m_style)] << std::endl;
 }
 
@@ -492,6 +492,9 @@ void parse_UnicodeData(const std::string& file_name, OutputFun outputFun)
 
 #include "../idna/idna_table.h"
 
+// We save Mark, Virama, Joinner, Bidi catogories only for chars having CP_VALID flag
+// set (it includes: CP_DEVIATION, CP_VALID, or CP_NO_STD3_VALID). This will dramatically
+// reduce the size of lookup tables.
 inline uint32_t allowed_char(uint32_t v) {
     // CP_DEVIATION, CP_VALID, CP_NO_STD3_VALID
     return v & CP_VALID;
@@ -734,9 +737,7 @@ struct special_ranges {
     std::vector<range_value> m_range;
 
     template <class T>
-    special_ranges(const std::vector<T>& values_arr) {
-        constexpr std::size_t max_range_count = 2;
-
+    special_ranges(const std::vector<T>& values_arr, std::size_t max_range_count = 1) {
         if (values_arr.size() > 0) {
             // add main range
             m_range.emplace_back(values_arr, values_arr.size() - 1);
@@ -766,7 +767,7 @@ struct special_ranges {
 
 
 template <class T>
-const char* getUIntType(std::vector<T> arr, size_t item_size = sizeof(T)) {
+const char* getUIntType(const std::vector<T>& arr, size_t item_size = sizeof(T)) {
     size_t max_size = 1;
     for (const T& v : arr) {
         const size_t size = (v <= 0xFF ? 1 : (v <= 0xFFFF ? 2 : (v <= 0xFFFFFFFF ? 4 : 8)));
@@ -1001,7 +1002,7 @@ void make_mapping_table(std::string data_path) {
     //=======================================================================
     // Output Data
 
-    special_ranges<uint32_t> spec(arrChars);
+    special_ranges<uint32_t> spec(arrChars, 2);
     //TODO spec.range.size() >= 2
 
     const size_t count_chars = spec.m_range[0].from;
