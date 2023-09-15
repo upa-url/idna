@@ -70,6 +70,7 @@ namespace idna_test {
 
 #if 1
         // IdnaTest.txt (10.0.0) still have incorrect tests for toUnicode with error code [A4_2]
+        // In IdnaTestV2.txt starting with Version 15.0.0 these cases are labeled [X4_2]
         // XXX: To pass them toUnicode must return error if returned domain has empty non-root label
         if (res) {
             auto domain_b = domain.begin();
