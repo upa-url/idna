@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 
+namespace upa {
 namespace idna {
 
 // Split
@@ -383,4 +384,5 @@ bool ToUnicode(std::u16string& domain, Option options) {
 }
 
 
-} // idna
+} // namespace idna
+} // namespace upa

@@ -10,6 +10,8 @@
 // ICU NFC
 #include "unicode/normalizer2.h"
 
+namespace upa {
+namespace idna {
 
 bool normalize_nfc(std::u16string& str) {
     if (str.empty()) return true;
@@ -35,10 +37,16 @@ bool is_normalized_nfc(const char16_t* first, const char16_t* last) {
     return !!normalizer->isNormalized(source, icu_error);
 }
 
+} // namespace idna
+} // namespace upa
+
 #elif THE_NFC_LIB == 2
 ///////////////////////////////////////////////////////////////
 // Windows NFC
 #include <windows.h>
+
+namespace upa {
+namespace idna {
 
 bool normalize_nfc(std::u16string& str) {
     if (str.empty()) return true;
@@ -74,11 +82,17 @@ bool is_normalized_nfc(const char16_t* first, const char16_t* last) {
     return !! IsNormalizedString(NormalizationC, reinterpret_cast<const wchar_t*>(first), last - first);
 }
 
+} // namespace idna
+} // namespace upa
+
 #elif THE_NFC_LIB == 3
 ///////////////////////////////////////////////////////////////
 // JS NFC (emsdk)
 #include <emscripten.h>
 #include <stdlib.h>  // free
+
+namespace upa {
+namespace idna {
 
 bool normalize_nfc(std::u16string& str) {
     char16_t *res = (char16_t*)EM_ASM_INT({
@@ -106,5 +120,8 @@ bool is_normalized_nfc(const char16_t* first, const char16_t* last) {
         return inp.normalize('NFC') === inp;
     }, str.c_str());
 }
+
+} // namespace idna
+} // namespace upa
 
 #endif

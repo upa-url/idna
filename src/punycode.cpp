@@ -108,6 +108,8 @@ static inline void appendCodePoint(std::u16string& output, uint32_t cp) {
 }
 
 
+namespace upa {
+namespace idna {
 namespace punycode {
 
 // Main encode function
@@ -327,3 +329,5 @@ status decode(std::u16string& output, const char16_t* first, const char16_t* las
 
 
 } // namespace punycode
+} // namespace idna
+} // namespace upa

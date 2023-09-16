@@ -35,19 +35,19 @@ namespace {
 }
 
 
-namespace idna_test {
+namespace idna_lib {
 
     bool toASCII(std::string& output, const std::string& input, bool transitional) {
         // to utf-16
         std::u16string domain(utf16_from_bytes(input));
 
-        bool res = idna::ToASCII(domain,
-            idna::Option::VerifyDnsLength |
-            idna::Option::CheckHyphens |
-            idna::Option::CheckBidi |
-            idna::Option::CheckJoiners |
-            idna::Option::UseSTD3ASCIIRules |
-            (transitional ? idna::Option::Transitional : idna::Option::Default)
+        bool res = upa::idna::ToASCII(domain,
+            upa::idna::Option::VerifyDnsLength |
+            upa::idna::Option::CheckHyphens |
+            upa::idna::Option::CheckBidi |
+            upa::idna::Option::CheckJoiners |
+            upa::idna::Option::UseSTD3ASCIIRules |
+            (transitional ? upa::idna::Option::Transitional : upa::idna::Option::Default)
             );
 
         // to utf-8
@@ -60,12 +60,12 @@ namespace idna_test {
         // to utf-16
         std::u16string domain(utf16_from_bytes(input));
 
-        bool res = idna::ToUnicode(domain,
-            // idna::Option::VerifyDnsLength |
-            idna::Option::CheckHyphens |
-            idna::Option::CheckBidi |
-            idna::Option::CheckJoiners |
-            idna::Option::UseSTD3ASCIIRules
+        bool res = upa::idna::ToUnicode(domain,
+            // upa::idna::Option::VerifyDnsLength |
+            upa::idna::Option::CheckHyphens |
+            upa::idna::Option::CheckBidi |
+            upa::idna::Option::CheckJoiners |
+            upa::idna::Option::UseSTD3ASCIIRules
             );
 
 #if 1
@@ -98,4 +98,4 @@ namespace idna_test {
         return res;
     }
 
-} // namespace idna_test
+} // namespace idna_lib

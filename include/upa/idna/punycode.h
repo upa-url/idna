@@ -1,8 +1,10 @@
-#ifndef PUNYCODE__H
-#define PUNYCODE__H
+#ifndef UPA_IDNA_PUNYCODE_H
+#define UPA_IDNA_PUNYCODE_H
 
 #include <string>
 
+namespace upa {
+namespace idna {
 namespace punycode {
 
 enum class status {
@@ -15,6 +17,8 @@ enum class status {
 status encode(std::u16string& output, const char16_t* first, const char16_t* last);
 status decode(std::u16string& output, const char16_t* first, const char16_t* last);
 
-}
+} // namespace punycode
+} // namespace idna
+} // namespace upa
 
-#endif // PUNYCODE__H
+#endif // UPA_IDNA_PUNYCODE_H

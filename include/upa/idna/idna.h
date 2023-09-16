@@ -1,8 +1,9 @@
-#ifndef IDNA__H
-#define IDNA__H
+#ifndef UPA_IDNA_H
+#define UPA_IDNA_H
 
 #include <string>
 
+namespace upa {
 namespace idna {
 
 enum class Option {
@@ -18,14 +19,15 @@ enum class Option {
 bool ToASCII(std::u16string& domain, Option options);
 bool ToUnicode(std::u16string& domain, Option options);
 
-} // idna
+} // namespace idna
+} // namespace upa
 
 // --------------------------------------------
 // enable bit mask on idna::Option
 #include "bitmask_operators.hpp"
 template<>
-struct enable_bitmask_operators<idna::Option> {
+struct enable_bitmask_operators<upa::idna::Option> {
     static const bool enable = true;
 };
 
-#endif // IDNA__H
+#endif // UPA_IDNA_H

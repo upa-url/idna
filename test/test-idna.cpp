@@ -95,19 +95,19 @@ void run_idna_tests_v2(const char* file_name)
                     bool ok;
 
                     // ToUnicode
-                    ok = idna_test::toUnicode(output, source);
+                    ok = idna_lib::toUnicode(output, source);
                     tc.assert_equal(exp_unicode_ok, ok, "ToUnicode success");
                     tc.assert_equal(exp_unicode, output, "ToUnicode output");
 
                     // ToASCII
-                    ok = idna_test::toASCII(output, source, false);
+                    ok = idna_lib::toASCII(output, source, false);
                     tc.assert_equal(exp_ascii_ok, ok, "ToASCII(non-trans.) success");
                     if (exp_ascii_ok && ok) {
                         tc.assert_equal(exp_ascii, output, "ToASCII(non-trans.) output");
                     }
 
                     // toAsciiT
-                    ok = idna_test::toASCII(output, source, true);
+                    ok = idna_lib::toASCII(output, source, true);
                     tc.assert_equal(exp_asciiT_ok, ok, "ToASCII(trans.) success");
                     if (exp_asciiT_ok && ok) {
                         tc.assert_equal(exp_asciiT, output, "ToASCII(trans.) output");
@@ -266,7 +266,7 @@ inline bool is_error(const std::string& col) {
 // stream operator
 template <class CharT, class Traits, class StrT>
 inline std::basic_ostream<CharT, Traits>& output_str(std::basic_ostream<CharT, Traits>& os, const StrT& str, const int width) {
-    const uint32_t maxCh = std::numeric_limits<CharT>::max();
+    constexpr uint32_t maxCh = std::numeric_limits<CharT>::max();
     for (auto ch : str) {
         if (ch <= maxCh) {
             os << static_cast<CharT>(ch);
@@ -340,12 +340,12 @@ void run_punycode_tests(const char* file_name)
 
                     // encode to punycode
                     output.clear(); // because punycode::encode(..) appends
-                    ok = punycode::encode(output, inp_source.data(), inp_source.data() + inp_source.length()) == punycode::status::success;
+                    ok = upa::idna::punycode::encode(output, inp_source.data(), inp_source.data() + inp_source.length()) == upa::idna::punycode::status::success;
                     tc.assert_equal(inp_encoded, output, "punycode::encode");
 
                     // decode from punycode
                     output.clear();
-                    ok = punycode::decode(output, inp_encoded.data(), inp_encoded.data() + inp_encoded.length()) == punycode::status::success;
+                    ok = upa::idna::punycode::decode(output, inp_encoded.data(), inp_encoded.data() + inp_encoded.length()) == upa::idna::punycode::status::success;
                     tc.assert_equal(inp_source, output, "punycode::decode");
                 });
             }

@@ -1,9 +1,15 @@
-#ifndef NORMALIZE_H
-#define NORMALIZE_H
+#ifndef UPA_IDNA_NORMALIZE_H
+#define UPA_IDNA_NORMALIZE_H
 
 #include <string>
+
+namespace upa {
+namespace idna {
 
 bool normalize_nfc(std::u16string& str);
 bool is_normalized_nfc(const char16_t* first, const char16_t* last);
 
-#endif // NORMALIZE_H
+} // namespace idna
+} // namespace upa
+
+#endif // UPA_IDNA_NORMALIZE_H
