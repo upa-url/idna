@@ -9,24 +9,28 @@ if(POLICY CMP0074)
 endif()
 
 # Project settings
-project(idna_test LANGUAGES CXX)
+project(test_idna LANGUAGES CXX)
+
+include_directories(
+  include
+)
 
 find_package(ICU REQUIRED COMPONENTS i18n uc)
 
-add_executable(idna_test
-  idna_test.cpp
-  test_idna.cpp
-  idna/idna.cpp
-  idna/idna_table.cpp
-  idna/normalize.cpp
-  idna/punycode.cpp
+add_executable(test-idna
+  test/test-idna.cpp
+  test/idna_lib_upa.cpp
+  src/idna.cpp
+  src/idna_table.cpp
+  src/normalize.cpp
+  src/punycode.cpp
 )
-target_link_libraries(idna_test ICU::i18n ICU::uc)
+target_link_libraries(test-idna ICU::i18n ICU::uc)
 
 # Testing
 
 enable_testing()
 
-add_test(NAME idna_test
-  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-  COMMAND ${CMAKE_CURRENT_BINARY_DIR}/idna_test)
+add_test(NAME test-idna
+  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test
+  COMMAND ${CMAKE_CURRENT_BINARY_DIR}/test-idna)

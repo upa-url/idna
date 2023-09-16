@@ -1,7 +1,7 @@
 // idna_test.cpp : Defines the entry point for the console application.
 //
 
-#include "idna_test.h"
+#include "idna_lib.h"
 #include <algorithm>
 #include <cassert>
 #include <cstdint>
@@ -30,10 +30,10 @@ static bool is_error(const std::string& col);
 
 int main()
 {
-    run_idna_tests_v2("test-data/IdnaTestV2.txt");
+    run_idna_tests_v2("data/IdnaTestV2.txt");
 
-    run_punycode_tests("test-data/punycode-test.txt");
-    run_punycode_tests("test-data/punycode-test-mano.txt");
+    run_punycode_tests("data/punycode-test.txt");
+    run_punycode_tests("data/punycode-test-mano.txt");
 
     return 0;
 }
@@ -296,7 +296,7 @@ inline std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, T
 // Punycode tests
 //
 
-#include "idna/punycode.h"
+#include "upa/idna/punycode.h"
 
 void run_punycode_tests(const char* file_name)
 {

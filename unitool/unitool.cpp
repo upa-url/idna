@@ -490,7 +490,7 @@ void parse_UnicodeData(const std::string& file_name, OutputFun outputFun)
 // ==================================================================
 // Make all in one mapping table
 
-#include "../idna/idna_table.h"
+#include "../src/idna_table.h"
 
 // We save Mark, Virama, Joinner, Bidi catogories only for chars having CP_VALID flag
 // set (it includes: CP_DEVIATION, CP_VALID, or CP_NO_STD3_VALID). This will dramatically

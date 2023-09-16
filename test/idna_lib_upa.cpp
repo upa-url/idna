@@ -1,4 +1,4 @@
-#include "idna_test.h"
+#include "idna_lib.h"
 
 // conversion
 #include <algorithm>
@@ -6,7 +6,7 @@
 #include <locale>    // std::wstring_convert
 
 // IDNA (UTS46)
-#include "idna/idna.h"
+#include "upa/idna/idna.h"
 
 namespace {
 #if _MSC_VER >= 1900

@@ -3,7 +3,7 @@
 # define THE_NFC_LIB 1
 #endif
 
-#include "normalize.h"
+#include "upa/idna/normalize.h"
 
 #if THE_NFC_LIB == 1
 ///////////////////////////////////////////////////////////////
