@@ -57,7 +57,12 @@ static bool processing(std::u16string& domain, Option options) {
             mapped.append(start, it);
             break;
         case CP_MAPPED:
-            apply_mapping(value, mapped);
+            if (has(options, Option::Transitional) && cp == 0x1E9E) {
+                // replace U+1E9E capital sharp s by “ss”
+                mapped.append(u"ss", 2);
+            } else {
+                apply_mapping(value, mapped);
+            }
             break;
         case CP_DEVIATION:
             if (has(options, Option::Transitional)) {
@@ -69,7 +74,7 @@ static bool processing(std::u16string& domain, Option options) {
         default:
             // CP_DISALLOWED
             // CP_NO_STD3_MAPPED, CP_NO_STD3_VALID if Option::UseSTD3ASCIIRules
-            error = true;
+            // Starting with Unicode 15.1.0 - don't record an error (error = true)
             mapped.append(start, it);
             break;
         }
@@ -124,16 +129,22 @@ static bool validate_label(const char16_t* label, const char16_t* label_end, Opt
             // V3
             if (label[0] == '-' || *(label_end - 1) == '-')
                 return false;
+        } else {
+            // V4: If not CheckHyphens, the label must not begin with “xn--”
+            // https://github.com/whatwg/url/issues/603#issuecomment-842625331
+            const size_t label_length = label_end - label;
+            if (label_length >= 4 && label[0] == 'x' && label[1] == 'n' && label[2] == '-' && label[3] == '-')
+                return false;
         }
 
-        // V4 - galima ignoruoti (todo)
+        // V5 - can be ignored (todo)
 
-        // V5
+        // V6
         const uint32_t cpflags = getCharInfo(peekCodePoint(label, label_end)); // label[0]
         if (cpflags & CAT_MARK)
             return false;
 
-        // V6
+        // V7
         // TODO: if (full_check)
         const uint32_t valid_mask = getValidMask(
             has(options, Option::UseSTD3ASCIIRules),
@@ -145,7 +156,7 @@ static bool validate_label(const char16_t* label, const char16_t* label_end, Opt
             }
         }
 
-        // V7
+        // V8
         if (has(options, Option::CheckJoiners)) {
             // https://tools.ietf.org/html/rfc5892#appendix-A
             for (auto it = label; it != label_end;) {
@@ -187,7 +198,7 @@ static bool validate_label(const char16_t* label, const char16_t* label_end, Opt
             }
         }
 
-        // V8
+        // V9
         if (has(options, Option::CheckBidi)) {
             if (!validate_bidi(label, label_end, bidiRes))
                 return false;
