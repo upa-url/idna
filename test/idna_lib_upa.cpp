@@ -9,7 +9,8 @@
 #include "upa/idna/idna.h"
 
 namespace {
-#if _MSC_VER >= 1900
+#if defined(_MSC_VER) && _MSC_VER >= 1900 && _MSC_VER < 1920
+    // for VS 2015 and VS 2017 
     // https://stackoverflow.com/q/32055357
     static std::wstring_convert<std::codecvt_utf8_utf16<uint16_t>, uint16_t> conv16;
 
