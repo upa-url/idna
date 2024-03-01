@@ -16,8 +16,8 @@ enum class Option {
     CheckJoiners      = 0x0020,
 };
 
-bool ToASCII(std::u16string& domain, Option options);
-bool ToUnicode(std::u16string& domain, Option options);
+bool ToASCII(std::u16string& domain, const char16_t* input, const char16_t* input_end, Option options);
+bool ToUnicode(std::u16string& domain, const char16_t* input, const char16_t* input_end, Option options);
 
 } // namespace idna
 } // namespace upa

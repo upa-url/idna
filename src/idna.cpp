@@ -42,15 +42,15 @@ enum BidiRes : int {
 static bool validate_label(const char16_t* label, const char16_t* label_end, Option options, bool full_check, int& bidiRes);
 static bool validate_bidi(const char16_t* label, const char16_t* label_end, int& bidiRes);
 
-static bool processing(std::u16string& domain, Option options) {
+static bool processing(std::u16string& domain, const char16_t* input, const char16_t* input_end, Option options) {
     bool error = false;
     std::u16string mapped;
 
     // P1 - Map
     const uint32_t status_mask = getStatusMask(has(options, Option::UseSTD3ASCIIRules));
-    for (auto it = domain.begin(); it != domain.end(); ) {
+    for (auto it = input; it != input_end; ) {
         auto start = it;
-        const uint32_t cp = getCodePoint(it, domain.end());
+        const uint32_t cp = getCodePoint(it, input_end);
         const uint32_t value = getCharInfo(cp);
 
         switch (value & status_mask) {
@@ -309,10 +309,10 @@ static bool validate_bidi(const char16_t* label, const char16_t* label_end, int&
     return true;
 }
 
-bool ToASCII(std::u16string& domain, Option options) {
+bool ToASCII(std::u16string& domain, const char16_t* input, const char16_t* input_end, Option options) {
     bool ok;
     // A1
-    ok = processing(domain, options);
+    ok = processing(domain, input, input_end, options);
 
     // A2 - Break the result into labels at U+002E FULL STOP
     if (domain.length() == 0) {
@@ -378,9 +378,9 @@ bool ToASCII(std::u16string& domain, Option options) {
     return ok;
 }
 
-bool ToUnicode(std::u16string& domain, Option options) {
+bool ToUnicode(std::u16string& domain, const char16_t* input, const char16_t* input_end, Option options) {
     // Processing, using Nontransitional_Processing
-    return processing(domain, options & ~Option::Transitional);
+    return processing(domain, input, input_end, options & ~Option::Transitional);
 }
 
 

@@ -42,7 +42,7 @@ namespace idna_lib {
         // to utf-16
         std::u16string domain(utf16_from_bytes(input));
 
-        bool res = upa::idna::ToASCII(domain,
+        bool res = upa::idna::ToASCII(domain, domain.data(), domain.data() + domain.length(),
             upa::idna::Option::VerifyDnsLength |
             upa::idna::Option::CheckHyphens |
             upa::idna::Option::CheckBidi |
@@ -61,7 +61,7 @@ namespace idna_lib {
         // to utf-16
         std::u16string domain(utf16_from_bytes(input));
 
-        bool res = upa::idna::ToUnicode(domain,
+        bool res = upa::idna::ToUnicode(domain, domain.data(), domain.data() + domain.length(),
             // upa::idna::Option::VerifyDnsLength |
             upa::idna::Option::CheckHyphens |
             upa::idna::Option::CheckBidi |
