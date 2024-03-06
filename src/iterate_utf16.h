@@ -36,7 +36,7 @@ inline uint32_t getCodePoint(InputIt& it, InputIt last) {
     if (is_surrogate_lead(c1) && it != last) {
         const uint32_t c2 = *it;
         if (is_surrogate_trail(c2)) {
-            it++;
+            ++it;
             return get_suplementary(c1, c2);
         }
     }
@@ -52,7 +52,7 @@ inline uint32_t prevCodePoint(InputIt first, InputIt& it) {
         if (is_surrogate_lead(c1)) {
             return get_suplementary(c1, c2);
         }
-        it++;
+        ++it;
     }
     return c2;
 }
@@ -70,7 +70,7 @@ inline InputIt skipCodePoint(InputIt it, InputIt last) {
         const uint32_t c1 = *it++;
         if (is_surrogate_lead(c1) && it != last) {
             if (is_surrogate_trail(*it))
-                it++;
+                ++it;
         }
     }
     return it;
@@ -82,9 +82,9 @@ inline InputIt skipCodePoints(size_t count, InputIt it, InputIt last) {
         const uint32_t c1 = *it++;
         if (is_surrogate_lead(c1) && it != last) {
             if (is_surrogate_trail(*it))
-                it++;
+                ++it;
         }
-        count--;
+        --count;
     }
     return it;
 }
@@ -110,9 +110,9 @@ inline size_t pos_of_code_point_at(size_t count, InputIt it, InputIt last) {
         const uint32_t c1 = *it++;
         if (is_surrogate_lead(c1) && it != last) {
             if (is_surrogate_trail(*it))
-                it++;
+                ++it;
         }
-        count--;
+        --count;
     }
     return std::distance(start, it);
 }

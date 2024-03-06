@@ -129,7 +129,7 @@ status encode(std::u16string& output, const char16_t* first, const char16_t* las
     // Handle the basic code points and fill code point/index array
     size_t len0 = output.length();
     size_t ind = 0;
-    for (auto it = first; it != last; it++, ind++) {
+    for (auto it = first; it != last; ++it, ++ind) {
         const char16_t ch = *it;
         if (basic(ch)) {
             output.push_back(ch);
@@ -140,7 +140,7 @@ status encode(std::u16string& output, const char16_t* first, const char16_t* las
         } else if (is_surrogate_lead(ch) && last - it > 1 && is_surrogate_trail(it[1])) {
             const punycode_uint cp = get_suplementary(ch, it[1]);
             arrCpInd.push_back(to_punycode_item(cp, ind));
-            it++;
+            ++it;
         } else {
             // unmatched surrogate
             return status::bad_input;
@@ -169,7 +169,7 @@ status encode(std::u16string& output, const char16_t* first, const char16_t* las
         // end of m code points
         punycode_uint next_h = h + 1;
         while (next_h < arrCpInd.size() && get_item_cp(arrCpInd[next_h]) == m)
-            next_h++;
+            ++next_h;
         // fill deltas
         const punycode_uint count_m = next_h - h;
         deltas.assign(count_m, 0);
@@ -180,17 +180,17 @@ status encode(std::u16string& output, const char16_t* first, const char16_t* las
 
         // calculate deltas
         punycode_uint next_delta = 0;
-        for (size_t j = 0; j < h; j++) {
+        for (size_t j = 0; j < h; ++j) {
             const punycode_uint i = get_item_ind(arrCpInd[j]);
             if (i < ind) {
-                deltas[0]++; // TODO: overflow
+                ++deltas[0]; // TODO: overflow
             } else {
                 // TODO: use binary search
-                next_delta++; // gal galima optimaliau?
-                for (punycode_uint hh = h + 1; hh < next_h; hh++) {
+                ++next_delta; // gal galima optimaliau?
+                for (punycode_uint hh = h + 1; hh < next_h; ++hh) {
                     if (i < get_item_ind(arrCpInd[hh])) {
-                        deltas[hh - h]++; // TODO: overflow
-                        next_delta--;
+                        ++deltas[hh - h]; // TODO: overflow
+                        --next_delta;
                         break;
                     }
                 }
@@ -198,7 +198,7 @@ status encode(std::u16string& output, const char16_t* first, const char16_t* las
         }
 
         // output
-        for (const punycode_uint h0 = h; h < next_h; h++) {
+        for (const punycode_uint h0 = h; h < next_h; ++h) {
             delta = deltas[h - h0];
 
             // Represent delta as a generalized variable-length integer:
@@ -242,7 +242,7 @@ status decode(std::u16string& output, const char16_t* first, const char16_t* las
 
         // basic code points to list
         size_t ptr = 0;
-        for (auto it = first; it != pb; it++) {
+        for (auto it = first; it != pb; ++it) {
             const auto ch = *it;
             if (!basic(ch)) return status::bad_input;
             // ++ptr - index to the next char in the list
@@ -306,7 +306,7 @@ status decode(std::u16string& output, const char16_t* first, const char16_t* las
         } else {
             const size_t ptr = arrCpPtr.size();
             size_t prev_ptr = start_ptr;
-            for (punycode_uint count = 1; count < i; count++) {
+            for (punycode_uint count = 1; count < i; ++count) {
                 prev_ptr = get_item_ind(arrCpPtr[prev_ptr]);
             }
             // insert
@@ -314,12 +314,12 @@ status decode(std::u16string& output, const char16_t* first, const char16_t* las
             arrCpPtr.push_back(to_punycode_item(n, next_ptr));
             arrCpPtr[prev_ptr] = to_punycode_item(get_item_cp(arrCpPtr[prev_ptr]), ptr);
         }
-        i++;
+        ++i;
     }
 
     // convert list to utf-16
     size_t ptr = start_ptr;
-    for (size_t count = arrCpPtr.size(); count > 0; count--) {
+    for (size_t count = arrCpPtr.size(); count > 0; --count) {
         appendCodePoint(output, get_item_cp(arrCpPtr[ptr]));
         ptr = get_item_ind(arrCpPtr[ptr]);
     }
