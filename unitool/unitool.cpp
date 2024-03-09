@@ -305,9 +305,8 @@ void make_mapping_table(std::string data_path) {
     return;
 #endif
 
-
     //=======================================================================
-    // generate code
+    // Generate code
 
     file_name = data_path + "GEN-idna-tables.txt";
     std::ofstream fout(file_name, std::ios_base::out);
@@ -322,21 +321,22 @@ void make_mapping_table(std::string data_path) {
         std::cerr << "Can't open destination file: " << file_name << std::endl;
         return;
     }
-    // constants
-    fout_head << "const size_t blockShift = " << binf.size_shift << ";\n";
-    fout_head << "const uint32_t blockMask = " << unsigned_to_numstr(binf.code_point_mask(), 16) << ";\n";
-    fout_head << "const uint32_t defaultStart = " << unsigned_to_numstr(count_chars, 16) << ";\n";
-    fout_head << "const uint32_t defaultValue = " << unsigned_to_numstr(arrChars[count_chars].value, 16) << ";\n";
-    fout_head << "const uint32_t specRange1 = " << unsigned_to_numstr(spec.m_range[1].from /*0xE0100*/, 16) << ";\n";
-    fout_head << "const uint32_t specRange2 = " << unsigned_to_numstr(spec.m_range[1].to /*0xE01EF*/, 16) << ";\n";
-    fout_head << "const uint32_t specValue = " << unsigned_to_numstr(arrChars[spec.m_range[1].from].value, 16) << ";\n";
+
+    // Constants
+    output_unsigned_constant(fout_head, "size_t", "blockShift", binf.size_shift, 10);
+    output_unsigned_constant(fout_head, "std::uint32_t", "blockMask", binf.code_point_mask(), 16);
+    output_unsigned_constant(fout_head, "std::uint32_t", "defaultStart", count_chars, 16);
+    output_unsigned_constant(fout_head, "std::uint32_t", "defaultValue", arrChars[count_chars].value, 16);
+    output_unsigned_constant(fout_head, "std::uint32_t", "specRange1", spec.m_range[1].from /*0xE0100*/, 16);
+    output_unsigned_constant(fout_head, "std::uint32_t", "specRange2", spec.m_range[1].to /*0xE01EF*/, 16);
+    output_unsigned_constant(fout_head, "std::uint32_t", "specValue", arrChars[spec.m_range[1].from].value, 16);
     fout_head << "\n";
     // ---
 
     std::vector<int> blockIndex;
 
     fout_head << "extern uint32_t blockData[];\n";
-    fout << "uint32_t blockData[] = {";
+    fout << "std::uint32_t blockData[] = {";
     {
         OutputFmt outfmt(fout, 100);
 

@@ -139,6 +139,16 @@ inline const char* getUIntType(const std::vector<T>& arr, size_t item_size = siz
     return getUIntType(getUIntSize(arr, item_size));
 }
 
+template <typename T>
+inline void output_unsigned_constant(std::ostream& out, const char* type, const char* name, T value, int base) {
+    out << "const " << type << ' ' << name << " = " << unsigned_to_numstr(value, base) << ";\n";
+}
+
+template <typename T>
+inline void output_unsigned_constant(std::ostream& out, const char* name, T value, int base) {
+    output_unsigned_constant(out, getUIntType<T>(), name, value, base);
+}
+
 // Parse input file
 
 template <class OutputFun>
