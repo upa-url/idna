@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <array>
 #include <cstdint>
 #include <fstream>
 #include <iomanip>
@@ -151,7 +152,7 @@ inline void output_unsigned_constant(std::ostream& out, const char* name, T valu
 
 // Parse input file
 
-template <class OutputFun>
+template <int cols_count, class OutputFun>
 inline void parse_UnicodeData(const std::string& file_name, OutputFun outputFun)
 {
     std::cout << "FILE: " << file_name << std::endl;
@@ -175,8 +176,9 @@ inline void parse_UnicodeData(const std::string& file_name, OutputFun outputFun)
             try {
                 std::size_t pos = 0;
                 const std::string cpstr = get_column(line, pos);
-                const std::string col1 = get_column(line, pos);
-                const std::string col2 = get_column(line, pos);
+                std::array<std::string, cols_count> col;
+                for (int i = 0; i < cols_count; ++i)
+                    col[i] = get_column(line, pos);
 
                 // code points range
                 int cp0, cp1;
@@ -189,7 +191,7 @@ inline void parse_UnicodeData(const std::string& file_name, OutputFun outputFun)
                     cp1 = hexstr_to_int(cpstr.data() + ind + 2, cpstr.data() + cpstr.length());
                 }
 
-                outputFun(cp0, cp1, col1, col2);
+                outputFun(cp0, cp1, col);
             }
             catch (std::exception& ex) {
                 std::cerr << "ERROR: " << ex.what() << std::endl;

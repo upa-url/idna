@@ -81,39 +81,39 @@ void make_mapping_table(std::string data_path) {
     // http://www.unicode.org/reports/tr46/#IDNA_Mapping_Table
     // IdnaMappingTable.txt
     std::string file_name = data_path + "IdnaMappingTable.txt";
-    parse_UnicodeData(file_name, [&](int cp0, int cp1, const std::string& col1, const std::string& col2) {
+    parse_UnicodeData<2>(file_name, [&](int cp0, int cp1, const auto& col) {
         bool has_mapped = false;
 
         // state
         uint32_t state = 0;
-        if (col1 == "disallowed") {
+        if (col[0] == "disallowed") {
             state = CP_DISALLOWED;
-        } else if (col1 == "ignored") {
+        } else if (col[0] == "ignored") {
             state = CP_MAPPED;
-        } else if (col1 == "mapped") {
+        } else if (col[0] == "mapped") {
             state = CP_MAPPED;
             has_mapped = true;
-        } else if (col1 == "deviation") {
+        } else if (col[0] == "deviation") {
             state = CP_DEVIATION;
             has_mapped = true;
-        } else if (col1 == "valid") {
+        } else if (col[0] == "valid") {
             state = CP_VALID;
-        } else if (col1 == "disallowed_STD3_mapped") {
+        } else if (col[0] == "disallowed_STD3_mapped") {
             state = CP_NO_STD3_MAPPED;
             has_mapped = true;
-        } else if (col1 == "disallowed_STD3_valid") {
+        } else if (col[0] == "disallowed_STD3_valid") {
             state = CP_NO_STD3_VALID;
         } else {
             // TODO: throw
-            std::cerr << "Unknown state: " << col1 << std::endl;
+            std::cerr << "Unknown state: " << col[0] << std::endl;
         }
 
         // mapped to
         uint32_t value = 0;
         std::u16string charsTo;
-        if (has_mapped && col2.length() > 0) {
-            // parse col2
-            split(col2.data(), col2.data() + col2.length(), ' ', [&charsTo](const char* it0, const char* it1) {
+        if (has_mapped && col[1].length() > 0) {
+            // parse col[1]
+            split(col[1].data(), col[1].data() + col[1].length(), ' ', [&charsTo](const char* it0, const char* it1) {
                 const int cp = hexstr_to_int(it0, it1);
                 if (cp <= 0xFFFF) {
                     charsTo.push_back(static_cast<char16_t>(cp));
@@ -195,8 +195,8 @@ void make_mapping_table(std::string data_path) {
 
     // DerivedGeneralCategory.txt
     file_name = data_path + "DerivedGeneralCategory.txt";
-    parse_UnicodeData(file_name, [&](int cp0, int cp1, const std::string& col1, const std::string& col2) {
-        if (col1.length() > 0 && col1[0] == 'M') {
+    parse_UnicodeData<1>(file_name, [&](int cp0, int cp1, const auto& col) {
+        if (col[0].length() > 0 && col[0][0] == 'M') {
             for (int cp = cp0; cp <= cp1; cp++) {
                 if (allowed_char(arrChars[cp].value)) {
                     arrChars[cp].value |= CAT_MARK;
@@ -210,9 +210,9 @@ void make_mapping_table(std::string data_path) {
 #if 1
     // DerivedCombiningClass.txt
     file_name = data_path + "DerivedCombiningClass.txt";
-    parse_UnicodeData(file_name, [&](int cp0, int cp1, const std::string& col1, const std::string& col2) {
+    parse_UnicodeData<1>(file_name, [&](int cp0, int cp1, const auto& col) {
         // 9 - Virama
-        if (col1 == "9") {
+        if (col[0] == "9") {
             for (int cp = cp0; cp <= cp1; cp++) {
                 if (allowed_char(arrChars[cp].value)) {
                     arrChars[cp].value |= CAT_Virama;
@@ -225,10 +225,10 @@ void make_mapping_table(std::string data_path) {
 
     // DerivedJoiningType.txt
     file_name = data_path + "DerivedJoiningType.txt";
-    parse_UnicodeData(file_name, [&](int cp0, int cp1, const std::string& col1, const std::string& col2) {
-        if (col1.length() == 1) {
+    parse_UnicodeData<1>(file_name, [&](int cp0, int cp1, const auto& col) {
+        if (col[0].length() == 1) {
             uint32_t flag = 0;
-            switch (col1[0]) {
+            switch (col[0][0]) {
             case 'D': flag = CAT_Joiner_D; break;
             case 'L': flag = CAT_Joiner_L; break;
             case 'R': flag = CAT_Joiner_R; break;
@@ -248,19 +248,19 @@ void make_mapping_table(std::string data_path) {
 
     // DerivedBidiClass.txt
     file_name = data_path + "DerivedBidiClass.txt";
-    parse_UnicodeData(file_name, [&](int cp0, int cp1, const std::string& col1, const std::string& col2) {
+    parse_UnicodeData<1>(file_name, [&](int cp0, int cp1, const auto& col) {
         uint32_t flag = 0;
-        if (col1 == "L") {
+        if (col[0] == "L") {
             flag = CAT_Bidi_L;
-        } else if (col1 == "R" || col1 == "AL") {
+        } else if (col[0] == "R" || col[0] == "AL") {
             flag = CAT_Bidi_R_AL;
-        } else if (col1 == "AN") {
+        } else if (col[0] == "AN") {
             flag = CAT_Bidi_AN;
-        } else if (col1 == "EN") {
+        } else if (col[0] == "EN") {
             flag = CAT_Bidi_EN;
-        } else if (col1 == "ES" || col1 == "CS" || col1 == "ET" || col1 == "ON" || col1 == "BN") {
+        } else if (col[0] == "ES" || col[0] == "CS" || col[0] == "ET" || col[0] == "ON" || col[0] == "BN") {
             flag = CAT_Bidi_ES_CS_ET_ON_BN;
-        } else if (col1 == "NSM") {
+        } else if (col[0] == "NSM") {
             flag = CAT_Bidi_NSM;
         } else {
             // Nenaudojama kategorija
