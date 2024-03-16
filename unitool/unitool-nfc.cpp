@@ -157,12 +157,15 @@ static void make_decomposition_table(const std::string& data_path, std::ostream&
         }
 
         item_num_type value = 0;
+    };
+
+    struct decomp_item_type : public item_type {
         std::u32string charsTo;
     };
 
     constexpr int MAX_CODE_POINT = 0x10FFFF;
 
-    std::vector<item_type> arr_decomp(MAX_CODE_POINT + 1);
+    std::vector<decomp_item_type> arr_decomp(MAX_CODE_POINT + 1);
 
     std::string file_name = data_path + "UnicodeData.txt";
     parse_UnicodeData<5>(file_name,
@@ -255,12 +258,12 @@ static void make_decomposition_table(const std::string& data_path, std::ostream&
     {
         OutputFmt outfmt(fout_cpp, 100);
 
-        typedef std::map<array_view<item_type>, int> BlokcsMap;
+        typedef std::map<array_view<decomp_item_type>, int> BlokcsMap;
         BlokcsMap blocks;
         int index = 0;
         for (size_t ind = 0; ind < count_chars; ind += block_size) {
             size_t chunk_size = std::min(block_size, arr_decomp.size() - ind);
-            array_view<item_type> block(arr_decomp.data() + ind, chunk_size);
+            array_view<decomp_item_type> block(arr_decomp.data() + ind, chunk_size);
 
             auto res = blocks.insert(BlokcsMap::value_type(block, index));
             if (res.second) {
