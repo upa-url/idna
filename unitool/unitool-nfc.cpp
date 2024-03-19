@@ -79,12 +79,12 @@ static void make_ccc_table(const std::string& data_path, std::ostream& fout_h, s
 
     // Special ranges to reduce table size
     special_ranges<item_num_type> spec_ccc(arr_ccc, 0);
-    const size_t count_chars = spec_ccc.m_range[0].from; // MAX_CODE_POINT + 1;
+    const std::size_t count_chars = spec_ccc.m_range[0].from; // MAX_CODE_POINT + 1;
     const int index_levels = 1; // 1 arba 2
 
     // Find block size
     const auto binf = find_block_size(arr_ccc, count_chars, sizeof(item_num_type), index_levels);
-    const size_t block_size = binf.block_size;
+    const std::size_t block_size = binf.block_size;
 
     // memory used
     std::cout << "block_size=" << block_size << "; mem=" << binf.total_mem() << "\n";
@@ -95,7 +95,7 @@ static void make_ccc_table(const std::string& data_path, std::ostream& fout_h, s
     const char* sz_item_num_type = getUIntType<item_num_type>();
 
     // Constants
-    output_unsigned_constant(fout_h, "size_t", "ccc_block_shift", binf.size_shift, 10);
+    output_unsigned_constant(fout_h, "std::size_t", "ccc_block_shift", binf.size_shift, 10);
     output_unsigned_constant(fout_h, "std::uint32_t", "ccc_block_mask", binf.code_point_mask(), 16);
     output_unsigned_constant(fout_h, "std::uint32_t", "ccc_default_start", count_chars, 16);
     output_unsigned_constant(fout_h, "std::uint32_t", "ccc_default_value", arr_ccc[count_chars], 16);
@@ -111,8 +111,8 @@ static void make_ccc_table(const std::string& data_path, std::ostream& fout_h, s
         typedef std::map<array_view<item_type>, int> BlokcsMap;
         BlokcsMap blocks;
         int index = 0;
-        for (size_t ind = 0; ind < count_chars; ind += block_size) {
-            size_t chunk_size = std::min(block_size, arr_ccc.size() - ind);
+        for (std::size_t ind = 0; ind < count_chars; ind += block_size) {
+            std::size_t chunk_size = std::min(block_size, arr_ccc.size() - ind);
             array_view<item_type> block(arr_ccc.data() + ind, chunk_size);
 
             auto res = blocks.insert(BlokcsMap::value_type(block, index));
@@ -259,11 +259,11 @@ static void make_composition_tables(const std::string& data_path, std::ostream& 
         // Output Data
 
         special_ranges<item_num_type> spec(arr_comp);
-        const size_t count_chars = spec.m_range[0].from;
+        const std::size_t count_chars = spec.m_range[0].from;
 
         std::cout << "=== 16 bit BLOCK ===\n";
         block_info binf = find_block_size(arr_comp, count_chars, sizeof(item_num_type));
-        size_t block_size = binf.block_size;
+        std::size_t block_size = binf.block_size;
 
         // total memory used
         std::cout << "block_size=" << block_size << "; mem: " << binf.total_mem() << "\n";
@@ -275,7 +275,7 @@ static void make_composition_tables(const std::string& data_path, std::ostream& 
         const char* sz_item_num_type = getUIntType<item_num_type>();
 
         // Constants
-        output_unsigned_constant(fout_h, "size_t", "comp_block_shift", binf.size_shift, 10);
+        output_unsigned_constant(fout_h, "std::size_t", "comp_block_shift", binf.size_shift, 10);
         output_unsigned_constant(fout_h, "std::uint32_t", "comp_block_mask", binf.code_point_mask(), 16);
         output_unsigned_constant(fout_h, "std::uint32_t", "comp_default_start", count_chars, 16);
         output_unsigned_constant(fout_h, "std::uint32_t", "comp_default_value", arr_comp[count_chars].value, 16);
@@ -291,8 +291,8 @@ static void make_composition_tables(const std::string& data_path, std::ostream& 
             typedef std::map<array_view<comp_item_type>, int> BlokcsMap;
             BlokcsMap blocks;
             int index = 0;
-            for (size_t ind = 0; ind < count_chars; ind += block_size) {
-                size_t chunk_size = std::min(block_size, arr_comp.size() - ind);
+            for (std::size_t ind = 0; ind < count_chars; ind += block_size) {
+                std::size_t chunk_size = std::min(block_size, arr_comp.size() - ind);
                 array_view<comp_item_type> block(arr_comp.data() + ind, chunk_size);
 
                 auto res = blocks.insert(BlokcsMap::value_type(block, index));
@@ -385,11 +385,11 @@ static void make_composition_tables(const std::string& data_path, std::ostream& 
         // Output Data
 
         special_ranges<item_num_type> spec(arr_decomp);
-        const size_t count_chars = spec.m_range[0].from;
+        const std::size_t count_chars = spec.m_range[0].from;
 
         std::cout << "=== 16 bit BLOCK ===\n";
         block_info binf = find_block_size(arr_decomp, count_chars, sizeof(item_num_type));
-        size_t block_size = binf.block_size;
+        std::size_t block_size = binf.block_size;
 
         // total memory used
         std::cout << "block_size=" << block_size << "; mem: " << binf.total_mem() << "\n";
@@ -401,7 +401,7 @@ static void make_composition_tables(const std::string& data_path, std::ostream& 
         const char* sz_item_num_type = getUIntType<item_num_type>();
 
         // Constants
-        output_unsigned_constant(fout_h, "size_t", "decomp_block_shift", binf.size_shift, 10);
+        output_unsigned_constant(fout_h, "std::size_t", "decomp_block_shift", binf.size_shift, 10);
         output_unsigned_constant(fout_h, "std::uint32_t", "decomp_block_mask", binf.code_point_mask(), 16);
         output_unsigned_constant(fout_h, "std::uint32_t", "decomp_default_start", count_chars, 16);
         output_unsigned_constant(fout_h, "std::uint32_t", "decomp_default_value", arr_decomp[count_chars].value, 16);
@@ -417,8 +417,8 @@ static void make_composition_tables(const std::string& data_path, std::ostream& 
             typedef std::map<array_view<decomp_item_type>, int> BlokcsMap;
             BlokcsMap blocks;
             int index = 0;
-            for (size_t ind = 0; ind < count_chars; ind += block_size) {
-                size_t chunk_size = std::min(block_size, arr_decomp.size() - ind);
+            for (std::size_t ind = 0; ind < count_chars; ind += block_size) {
+                std::size_t chunk_size = std::min(block_size, arr_decomp.size() - ind);
                 array_view<decomp_item_type> block(arr_decomp.data() + ind, chunk_size);
 
                 auto res = blocks.insert(BlokcsMap::value_type(block, index));
