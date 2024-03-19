@@ -7,3 +7,4 @@ set(CMAKE_SUPPRESS_REGENERATION true)
 project(unitool LANGUAGES CXX)
 
 add_executable(unitool-idna unitool-idna.cpp)
+add_executable(unitool-nfc unitool-nfc.cpp)
