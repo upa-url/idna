@@ -27,6 +27,12 @@ add_executable(test-idna
 )
 target_link_libraries(test-idna ICU::i18n ICU::uc)
 
+add_executable(test-nfc
+  test/test-nfc.cpp
+  src/nfc.cpp
+  src/nfc_table.cpp
+)
+
 # Testing
 
 enable_testing()
@@ -34,3 +40,7 @@ enable_testing()
 add_test(NAME test-idna
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test
   COMMAND ${CMAKE_CURRENT_BINARY_DIR}/test-idna)
+
+add_test(NAME test-nfc
+  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test
+  COMMAND ${CMAKE_CURRENT_BINARY_DIR}/test-nfc)
