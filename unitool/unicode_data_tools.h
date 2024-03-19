@@ -71,20 +71,20 @@ inline void unsigned_to_str(UIntT num, std::string& output, UIntT base) {
 }
 
 template <typename UIntT>
-inline void unsigned_to_numstr(UIntT num, std::string& output, UIntT base) {
+inline void unsigned_to_numstr(UIntT num, std::string& output, int base) {
     if (num > 0) {
         switch (base) {
         case 8: output += '0'; break;
         case 16: output += "0x"; break;
         }
     }
-    unsigned_to_str(num, output, base);
+    unsigned_to_str(num, output, static_cast<UIntT>(base));
 }
 
 template <typename UIntT>
 inline std::string unsigned_to_numstr(UIntT num, int base) {
     std::string strNum;
-    unsigned_to_numstr<UIntT>(num, strNum, static_cast<UIntT>(base));
+    unsigned_to_numstr<UIntT>(num, strNum, base);
     return strNum;
 }
 
