@@ -18,14 +18,14 @@ struct codepoint_key_val {
 const std::size_t ccc_block_shift = 5;
 const std::uint32_t ccc_block_mask = 0x1F;
 const std::uint32_t ccc_default_start = 0x1E94B;
-const std::uint32_t ccc_default_value = 0;
+const std::uint8_t ccc_default_value = 0;
 extern const std::uint8_t ccc_block[];
 extern const std::uint8_t ccc_block_index[];
 
 const std::size_t comp_block_shift = 5;
 const std::uint32_t comp_block_mask = 0x1F;
 const std::uint32_t comp_default_start = 0x11936;
-const std::uint32_t comp_default_value = 0;
+const std::uint16_t comp_default_value = 0;
 extern const std::uint16_t comp_block[];
 extern const std::uint8_t comp_block_index[];
 extern const codepoint_key_val comp_block_data[];
@@ -33,7 +33,7 @@ extern const codepoint_key_val comp_block_data[];
 const std::size_t decomp_block_shift = 6;
 const std::uint32_t decomp_block_mask = 0x3F;
 const std::uint32_t decomp_default_start = 0x2FA1E;
-const std::uint32_t decomp_default_value = 0;
+const std::uint16_t decomp_default_value = 0;
 extern const std::uint16_t decomp_block[];
 extern const std::uint8_t decomp_block_index[];
 extern const char32_t decomp_block_data[];

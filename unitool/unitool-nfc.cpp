@@ -98,7 +98,7 @@ static void make_ccc_table(const std::string& data_path, std::ostream& fout_h, s
     output_unsigned_constant(fout_h, "std::size_t", "ccc_block_shift", binf.size_shift, 10);
     output_unsigned_constant(fout_h, "std::uint32_t", "ccc_block_mask", binf.code_point_mask(), 16);
     output_unsigned_constant(fout_h, "std::uint32_t", "ccc_default_start", count_chars, 16);
-    output_unsigned_constant(fout_h, "std::uint32_t", "ccc_default_value", arr_ccc[count_chars], 16);
+    output_unsigned_constant(fout_h, sz_item_num_type, "ccc_default_value", arr_ccc[count_chars], 16);
 
     // CCC blocks
     std::vector<int> block_index;
@@ -278,7 +278,7 @@ static void make_composition_tables(const std::string& data_path, std::ostream& 
         output_unsigned_constant(fout_h, "std::size_t", "comp_block_shift", binf.size_shift, 10);
         output_unsigned_constant(fout_h, "std::uint32_t", "comp_block_mask", binf.code_point_mask(), 16);
         output_unsigned_constant(fout_h, "std::uint32_t", "comp_default_start", count_chars, 16);
-        output_unsigned_constant(fout_h, "std::uint32_t", "comp_default_value", arr_comp[count_chars].value, 16);
+        output_unsigned_constant(fout_h, sz_item_num_type, "comp_default_value", arr_comp[count_chars].value, 16);
 
         // Composition blocks
         std::vector<int> block_index;
@@ -404,7 +404,7 @@ static void make_composition_tables(const std::string& data_path, std::ostream& 
         output_unsigned_constant(fout_h, "std::size_t", "decomp_block_shift", binf.size_shift, 10);
         output_unsigned_constant(fout_h, "std::uint32_t", "decomp_block_mask", binf.code_point_mask(), 16);
         output_unsigned_constant(fout_h, "std::uint32_t", "decomp_default_start", count_chars, 16);
-        output_unsigned_constant(fout_h, "std::uint32_t", "decomp_default_value", arr_decomp[count_chars].value, 16);
+        output_unsigned_constant(fout_h, sz_item_num_type, "decomp_default_value", arr_decomp[count_chars].value, 16);
 
         // Decomposition blocks
         std::vector<int> block_index;
