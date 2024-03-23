@@ -71,13 +71,11 @@ inline size_t apply_mapping(uint32_t val, StrT& output) {
         return 1;
     }
     if (val & 0xFFFF) {
-        size_t ind;
         size_t len = (val & 0xFFFF) >> 13;
-        if (len < 7) {
-            ind = val & 0x1FFF;
-        } else {
-            len += (val >> 8) & 0x1F;
-            ind = val & 0xFF;
+        size_t ind = val & 0x1FFF;
+        if (len == 7) {
+            len += ind >> 8;
+            ind &= 0xFF;
         }
         output.append(allCharsTo + ind, allCharsTo + ind + len);
         return len;
