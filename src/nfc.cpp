@@ -1,6 +1,8 @@
 
 #include "upa/idna/nfc.h"
 #include "nfc_table.h"
+#include <algorithm>
+#include <iterator>
 
 
 namespace upa {
@@ -144,6 +146,14 @@ void canonical_decompose(std::u32string& str)
 void normalize_nfc(std::u32string& str) {
     canonical_decompose(str);
     compose(str);
+}
+
+bool is_normalized_nfc(const char32_t* first, const char32_t* last) {
+    std::u32string str{ first, last };
+    normalize_nfc(str);
+    return
+        std::distance(first, last) == str.length() &&
+        std::equal(first, last, str.data());
 }
 
 
