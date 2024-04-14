@@ -65,45 +65,6 @@ inline uint32_t peekCodePoint(InputIt it, InputIt last) {
 // safe
 
 template <class InputIt>
-inline InputIt skipCodePoint(InputIt it, InputIt last) {
-    if (it != last) {
-        const uint32_t c1 = *it++;
-        if (is_surrogate_lead(c1) && it != last) {
-            if (is_surrogate_trail(*it))
-                ++it;
-        }
-    }
-    return it;
-}
-
-template <class InputIt>
-inline InputIt skipCodePoints(size_t count, InputIt it, InputIt last) {
-    while (count && it != last) {
-        const uint32_t c1 = *it++;
-        if (is_surrogate_lead(c1) && it != last) {
-            if (is_surrogate_trail(*it))
-                ++it;
-        }
-        --count;
-    }
-    return it;
-}
-
-
-template <class InputIt>
-inline size_t countCharUnits(InputIt it, InputIt last) {
-    if (it != last) {
-        const uint32_t c1 = *it++;
-        if (is_surrogate_lead(c1) && it != last) {
-            if (is_surrogate_trail(*it))
-                return 2;
-        }
-        return 1;
-    }
-    return 0;
-}
-
-template <class InputIt>
 inline size_t pos_of_code_point_at(size_t count, InputIt it, InputIt last) {
     InputIt start = it;
     while (count && it != last) {
