@@ -110,6 +110,19 @@ inline static int hexstr_to_int(const char* first, const char* last) {
     return num;
 }
 
+// Char type name
+
+template <class T = char>
+inline const char* getCharType(size_t item_size = sizeof(T)) {
+    switch (item_size)
+    {
+    case 1: return "char";
+    case 2: return "char16_t";
+    case 4: return "char32_t";
+    default: return "???";
+    }
+}
+
 // Integer type name
 
 template <class T>

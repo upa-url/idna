@@ -27,6 +27,10 @@ int main(int argc, char* argv[])
 
 #include "../src/idna_table.h"
 
+// char mapping to char type
+using char_to_t = char32_t;
+using string_to_t = std::basic_string<char_to_t>;
+
 // We save Mark, Virama, Joinner, Bidi catogories only for chars having CP_VALID flag
 // set (it includes: CP_DEVIATION, CP_VALID, or CP_NO_STD3_VALID). This will dramatically
 // reduce the size of lookup tables.
@@ -46,7 +50,7 @@ struct char_item {
     }
 
     uint32_t value = 0;
-    std::u16string charsTo;
+    string_to_t charsTo;
 };
 
 // default < operator
@@ -70,7 +74,7 @@ void make_mapping_table(std::string data_path) {
     std::vector<char_item>& arrChars(*new std::vector<char_item>(MAX_CODE_POINT + 1));
 
     // mapped chars string
-    std::u16string allCharsTo;
+    string_to_t allCharsTo;
 
     // Append '/' to data_path
     if (data_path.length() > 0) {
@@ -110,24 +114,34 @@ void make_mapping_table(std::string data_path) {
 
         // mapped to
         uint32_t value = 0;
-        std::u16string charsTo;
+        string_to_t charsTo;
         if (has_mapped && col[1].length() > 0) {
             // parse col[1]
             split(col[1].data(), col[1].data() + col[1].length(), ' ', [&charsTo](const char* it0, const char* it1) {
                 const int cp = hexstr_to_int(it0, it1);
-                if (cp <= 0xFFFF) {
-                    charsTo.push_back(static_cast<char16_t>(cp));
-                } else if (cp < 0x10FFFF) {
-                    // http://unicode.org/faq/utf_bom.html#utf16-4
-                    // https://en.wikipedia.org/wiki/UTF-16#Description
-                    const int cc = cp - 0x10000;
-                    char16_t cu1 = 0xD800 | (cc >> 10); // high surrogate
-                    char16_t cu2 = 0xDC00 | (cc & 0x03FF); // low surrogate
-                    charsTo.push_back(cu1);
-                    charsTo.push_back(cu2);
-                } else {
-                    // TODO: throw
-                    std::cerr << "Invalid code point: " << cp << std::endl;
+                // TODO C++17: if constexpr
+                if (sizeof(char_to_t) == sizeof(char16_t)) {
+                    if (cp <= 0xFFFF) {
+                        charsTo.push_back(static_cast<char16_t>(cp));
+                    } else if (cp < 0x10FFFF) {
+                        // http://unicode.org/faq/utf_bom.html#utf16-4
+                        // https://en.wikipedia.org/wiki/UTF-16#Description
+                        const int cc = cp - 0x10000;
+                        char16_t cu1 = 0xD800 | (cc >> 10); // high surrogate
+                        char16_t cu2 = 0xDC00 | (cc & 0x03FF); // low surrogate
+                        charsTo.push_back(cu1);
+                        charsTo.push_back(cu2);
+                    } else {
+                        // TODO: throw
+                        std::cerr << "Invalid code point: " << cp << std::endl;
+                    }
+                } else if (sizeof(char_to_t) == sizeof(char32_t)) {
+                    if (cp < 0x10FFFF) {
+                        charsTo.push_back(static_cast<char32_t>(cp));
+                    } else {
+                        // TODO: throw
+                        std::cerr << "Invalid code point: " << cp << std::endl;
+                    }
                 }
             });
         }
@@ -160,7 +174,7 @@ void make_mapping_table(std::string data_path) {
         for (char_item* chitem : arrCharRef) {
             uint32_t value = 0;
             uint32_t flags = 0;
-            if (chitem->charsTo.length() == 1) {
+            if (chitem->charsTo.length() == 1 && chitem->charsTo[0] <= 0xFFFF) {
                 value = chitem->charsTo[0];
                 flags |= MAP_TO_ONE;
             } else {
@@ -293,8 +307,8 @@ void make_mapping_table(std::string data_path) {
 
     // total memory used
     std::cout << "block_size=" << block_size << "; mem: " << binf.total_mem() << "\n";
-    std::cout << "allCharsTo size: " << allCharsTo.size() << "; mem: " << allCharsTo.size() * 2 << "\n";
-    std::cout << "TOTAL MEM: " << binf.total_mem() + allCharsTo.size() * 2 << "\n";
+    std::cout << "allCharsTo size: " << allCharsTo.size() << "; mem: " << allCharsTo.size() * sizeof(allCharsTo[0]) << "\n";
+    std::cout << "TOTAL MEM: " << binf.total_mem() + allCharsTo.size() * sizeof(allCharsTo[0]) << "\n";
 
 #if 0
     std::cout << "=== 16 bit BLOCK ===\n";
@@ -323,7 +337,7 @@ void make_mapping_table(std::string data_path) {
     }
 
     // Constants
-    output_unsigned_constant(fout_head, "size_t", "blockShift", binf.size_shift, 10);
+    output_unsigned_constant(fout_head, "std::size_t", "blockShift", binf.size_shift, 10);
     output_unsigned_constant(fout_head, "std::uint32_t", "blockMask", binf.code_point_mask(), 16);
     output_unsigned_constant(fout_head, "std::uint32_t", "defaultStart", count_chars, 16);
     output_unsigned_constant(fout_head, "std::uint32_t", "defaultValue", arrChars[count_chars].value, 16);
@@ -335,7 +349,7 @@ void make_mapping_table(std::string data_path) {
 
     std::vector<int> blockIndex;
 
-    fout_head << "extern uint32_t blockData[];\n";
+    fout_head << "extern std::uint32_t blockData[];\n";
     fout << "std::uint32_t blockData[] = {";
     {
         OutputFmt outfmt(fout, 100);
@@ -422,11 +436,12 @@ void make_mapping_table(std::string data_path) {
         fout << "};\n\n";
     }
 
-    fout_head << "extern char16_t allCharsTo[];\n";
-    fout << "char16_t allCharsTo[] = {";
+    const char* sztype = getCharType<char_to_t>();
+    fout_head << "extern " << sztype << " allCharsTo[];\n";
+    fout << sztype << " allCharsTo[] = {";
     {
         OutputFmt outfmt(fout, 100);
-        for (char16_t ch : allCharsTo) {
+        for (auto ch : allCharsTo) {
             outfmt.output(ch, 16);
         }
     }

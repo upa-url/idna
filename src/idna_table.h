@@ -15,13 +15,13 @@ const uint32_t MAP_TO_ONE = 0x0008 << 16;
 const uint32_t CAT_MARK = 0x0010 << 16;
 // ContextJ
 const uint32_t CAT_Virama   = 0x0020 << 16;
-//todo: kaip reikšmės >1
+//todo: as values >1
 const uint32_t CAT_Joiner_D = 0x0040 << 16;
 const uint32_t CAT_Joiner_L = 0x0080 << 16;
 const uint32_t CAT_Joiner_R = 0x0100 << 16;
 const uint32_t CAT_Joiner_T = 0x0200 << 16;
 // Bidi
-//todo: kaip reikšmės >1
+//todo: as values >1
 const uint32_t CAT_Bidi_L    = 0x0400 << 16;
 const uint32_t CAT_Bidi_R_AL = 0x0800 << 16;
 const uint32_t CAT_Bidi_AN   = 0x1000 << 16;
@@ -30,17 +30,17 @@ const uint32_t CAT_Bidi_ES_CS_ET_ON_BN = 0x4000 << 16;
 const uint32_t CAT_Bidi_NSM  = 0x8000 << 16;
 
 // BEGIN-GENERATED
-const size_t blockShift = 4;
-const uint32_t blockMask = 0xF;
-const uint32_t defaultStart = 0x323B0;
-const uint32_t defaultValue = 0;
-const uint32_t specRange1 = 0xE0100;
-const uint32_t specRange2 = 0xE01EF;
-const uint32_t specValue = 0x20000;
+const std::size_t blockShift = 4;
+const std::uint32_t blockMask = 0xF;
+const std::uint32_t defaultStart = 0x323B0;
+const std::uint32_t defaultValue = 0;
+const std::uint32_t specRange1 = 0xE0100;
+const std::uint32_t specRange2 = 0xE01EF;
+const std::uint32_t specValue = 0x20000;
 
-extern uint32_t blockData[];
-extern uint16_t blockIndex[];
-extern char16_t allCharsTo[];
+extern std::uint32_t blockData[];
+extern std::uint16_t blockIndex[];
+extern char32_t allCharsTo[];
 // END-GENERATED
 
 
