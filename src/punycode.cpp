@@ -86,25 +86,12 @@ static punycode_uint adapt(punycode_uint delta, punycode_uint numpoints, bool fi
 
 // for decoder
 
-static inline const char16_t* find_delim(const char16_t* first, const char16_t* last) {
+template <typename CharT>
+inline const CharT* find_delim(const CharT* first, const CharT* last) {
     for (auto it = last; it != first;) {
         if (delim(*--it)) return it;
     }
     return nullptr;
-}
-
-static inline void appendCodePoint(std::u16string& output, uint32_t cp) {
-    if (cp <= 0xFFFF) {
-        output.push_back(static_cast<char16_t>(cp));
-    } else if (cp <= 0x10FFFF) {
-        // http://unicode.org/faq/utf_bom.html#utf16-4
-        // https://en.wikipedia.org/wiki/UTF-16#Description
-        const uint32_t cc = cp - 0x10000;
-        char16_t cu1 = static_cast<char16_t>(0xD800 | (cc >> 10)); // high surrogate
-        char16_t cu2 = static_cast<char16_t>(0xDC00 | (cc & 0x03FF)); // low surrogate
-        output.push_back(cu1);
-        output.push_back(cu2);
-    }
 }
 
 
@@ -114,7 +101,7 @@ namespace punycode {
 
 // Main encode function
 
-status encode(std::u16string& output, const char16_t* first, const char16_t* last) {
+status encode(std::string& output, const char32_t* first, const char32_t* last) {
     // ???
     // The Punycode spec assumes that the input length is the same type
     // of integer as a code point, so we need to convert the size_t to
@@ -130,19 +117,15 @@ status encode(std::u16string& output, const char16_t* first, const char16_t* las
     size_t len0 = output.length();
     size_t ind = 0;
     for (auto it = first; it != last; ++it, ++ind) {
-        const char16_t ch = *it;
+        const auto ch = *it;
         if (basic(ch)) {
-            output.push_back(ch);
+            output.push_back(static_cast<char>(ch));
             // for basic cp's only index-es
             arrCpInd.push_back(to_punycode_item(0, ind));
-        } else if (!is_surrogate(ch)) {
+        } else if (ch <= 0x10FFFF) {
             arrCpInd.push_back(to_punycode_item(ch, ind));
-        } else if (is_surrogate_lead(ch) && last - it > 1 && is_surrogate_trail(it[1])) {
-            const punycode_uint cp = get_suplementary(ch, it[1]);
-            arrCpInd.push_back(to_punycode_item(cp, ind));
-            ++it;
         } else {
-            // unmatched surrogate
+            // invalid codepoint
             return status::bad_input;
         }
     }
@@ -224,7 +207,7 @@ status encode(std::u16string& output, const char16_t* first, const char16_t* las
 
 // Main decode function
 
-status decode(std::u16string& output, const char16_t* first, const char16_t* last) {
+status decode(std::u32string& output, const char32_t* first, const char32_t* last) {
 
     // code points list
     std::vector<punycode_item> arrCpPtr;
@@ -320,7 +303,7 @@ status decode(std::u16string& output, const char16_t* first, const char16_t* las
     // convert list to utf-16
     size_t ptr = start_ptr;
     for (size_t count = arrCpPtr.size(); count > 0; --count) {
-        appendCodePoint(output, get_item_cp(arrCpPtr[ptr]));
+        output.push_back(get_item_cp(arrCpPtr[ptr]));
         ptr = get_item_ind(arrCpPtr[ptr]);
     }
 

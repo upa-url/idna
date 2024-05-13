@@ -14,8 +14,8 @@ enum class status {
     overflow = 3    // Wider integers needed to process input.
 };
 
-status encode(std::u16string& output, const char16_t* first, const char16_t* last);
-status decode(std::u16string& output, const char16_t* first, const char16_t* last);
+status encode(std::string& output, const char32_t* first, const char32_t* last);
+status decode(std::u32string& output, const char32_t* first, const char32_t* last);
 
 } // namespace punycode
 } // namespace idna

@@ -22,7 +22,8 @@ add_executable(test-idna
   test/idna_lib_upa.cpp
   src/idna.cpp
   src/idna_table.cpp
-  src/normalize.cpp
+  src/nfc.cpp
+  src/nfc_table.cpp
   src/punycode.cpp
 )
 target_link_libraries(test-idna ICU::i18n ICU::uc)

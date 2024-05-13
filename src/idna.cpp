@@ -1,7 +1,7 @@
 
 
 #include "upa/idna/idna.h"
-#include "upa/idna/normalize.h"
+#include "upa/idna/nfc.h"
 #include "upa/idna/punycode.h"
 #include "idna_table.h"
 #include "iterate_utf16.h"
@@ -39,28 +39,27 @@ enum BidiRes : int {
     IsBidiError = 0x02
 };
 
-static bool validate_label(const char16_t* label, const char16_t* label_end, Option options, bool full_check, int& bidiRes);
-static bool validate_bidi(const char16_t* label, const char16_t* label_end, int& bidiRes);
+static bool validate_label(const char32_t* label, const char32_t* label_end, Option options, bool full_check, int& bidiRes);
+static bool validate_bidi(const char32_t* label, const char32_t* label_end, int& bidiRes);
 
-static bool processing(std::u16string& domain, const char16_t* input, const char16_t* input_end, Option options) {
+static bool processing(std::u32string& domain, const char16_t* input, const char16_t* input_end, Option options) {
     bool error = false;
-    std::u16string mapped;
+    std::u32string mapped;
 
     // P1 - Map
     const uint32_t status_mask = getStatusMask(has(options, Option::UseSTD3ASCIIRules));
     for (auto it = input; it != input_end; ) {
-        auto start = it;
         const uint32_t cp = getCodePoint(it, input_end);
         const uint32_t value = getCharInfo(cp);
 
         switch (value & status_mask) {
         case CP_VALID:
-            mapped.append(start, it);
+            mapped.push_back(cp);
             break;
         case CP_MAPPED:
             if (has(options, Option::Transitional) && cp == 0x1E9E) {
                 // replace U+1E9E capital sharp s by “ss”
-                mapped.append(u"ss", 2);
+                mapped.append(U"ss", 2);
             } else {
                 apply_mapping(value, mapped);
             }
@@ -69,14 +68,14 @@ static bool processing(std::u16string& domain, const char16_t* input, const char
             if (has(options, Option::Transitional)) {
                 apply_mapping(value, mapped);
             } else {
-                mapped.append(start, it);
+                mapped.push_back(cp);
             }
             break;
         default:
             // CP_DISALLOWED
             // CP_NO_STD3_MAPPED, CP_NO_STD3_VALID if Option::UseSTD3ASCIIRules
             // Starting with Unicode 15.1.0 - don't record an error (error = true)
-            mapped.append(start, it);
+            mapped.push_back(cp);
             break;
         }
     }
@@ -87,8 +86,8 @@ static bool processing(std::u16string& domain, const char16_t* input, const char
     // P3 - Break
     int bidiRes = 0;
     bool first_label = true;
-    std::u16string decoded;
-    split(mapped.data(), mapped.data() + mapped.length(), 0x002E, [&](const char16_t* label, const char16_t* label_end) {
+    std::u32string decoded;
+    split(mapped.data(), mapped.data() + mapped.length(), 0x002E, [&](const char32_t* label, const char32_t* label_end) {
         if (first_label) {
             first_label = false;
         } else {
@@ -96,7 +95,7 @@ static bool processing(std::u16string& domain, const char16_t* input, const char
         }
         // P4 - Convert/Validate
         if (label_end - label >= 4 && label[0] == 'x' && label[1] == 'n' && label[2] == '-' && label[3] == '-') {
-            std::u16string ulabel;
+            std::u32string ulabel;
             if (punycode::decode(ulabel, label + 4, label_end) == punycode::status::success) {
                 error = error || !validate_label(ulabel.data(), ulabel.data() + ulabel.length(), options & ~Option::Transitional, true, bidiRes);
                 decoded.append(ulabel);
@@ -114,7 +113,7 @@ static bool processing(std::u16string& domain, const char16_t* input, const char
     return !error;
 }
 
-static bool validate_label(const char16_t* label, const char16_t* label_end, Option options, bool full_check, int& bidiRes) {
+static bool validate_label(const char32_t* label, const char32_t* label_end, Option options, bool full_check, int& bidiRes) {
     if (label != label_end) {
         // V1 - The label must be in Unicode Normalization Form NFC
         if (full_check && !is_normalized_nfc(label, label_end))
@@ -122,10 +121,8 @@ static bool validate_label(const char16_t* label, const char16_t* label_end, Opt
 
         if (has(options, Option::CheckHyphens)) {
             // V2
-            // todo: gal galima elegantiškiau?
-            size_t i2 = pos_of_code_point_at(2, label, label_end);
             const size_t label_length = label_end - label;
-            if (label_length >= i2 + 2 && label[i2] == '-' && label[i2 + 1] == '-')
+            if (label_length >= 4 && label[2] == '-' && label[3] == '-')
                 return false;
             // V3
             if (label[0] == '-' || *(label_end - 1) == '-')
@@ -141,7 +138,7 @@ static bool validate_label(const char16_t* label, const char16_t* label_end, Opt
         // V5 - can be ignored (todo)
 
         // V6
-        const uint32_t cpflags = getCharInfo(peekCodePoint(label, label_end)); // label[0]
+        const uint32_t cpflags = getCharInfo(label[0]); // label != label_end
         if (cpflags & CAT_MARK)
             return false;
 
@@ -151,7 +148,7 @@ static bool validate_label(const char16_t* label, const char16_t* label_end, Opt
             has(options, Option::UseSTD3ASCIIRules),
             has(options, Option::Transitional));
         for (auto it = label; it != label_end;) {
-            const uint32_t cpflags = getCharInfo(getCodePoint(it, label_end));
+            const uint32_t cpflags = getCharInfo(*it++); // it != label_end
             if ((cpflags & valid_mask) != CP_VALID) {
                 return false;
             }
@@ -162,12 +159,12 @@ static bool validate_label(const char16_t* label, const char16_t* label_end, Opt
             // https://tools.ietf.org/html/rfc5892#appendix-A
             for (auto it = label; it != label_end;) {
                 auto start = it;
-                const uint32_t cp = getCodePoint(it, label_end);
+                const uint32_t cp = *it++; // it != label_end
                 if (cp == 0x200C) {
                     // ZERO WIDTH NON-JOINER
                     if (start == label)
                         return false;
-                    uint32_t cpflags = getCharInfo(prevCodePoint(label, start));
+                    uint32_t cpflags = getCharInfo(*(--start)); // label != start
                     if (!(cpflags & CAT_Virama)) {
                         // {R,D} is required on the right
                         if (it == label_end)
@@ -176,22 +173,22 @@ static bool validate_label(const char16_t* label, const char16_t* label_end, Opt
                         while (!(cpflags & (CAT_Joiner_L | CAT_Joiner_D))) {
                             if (!(cpflags & CAT_Joiner_T) || start == label)
                                 return false;
-                            cpflags = getCharInfo(prevCodePoint(label, start));
+                            cpflags = getCharInfo(*(--start)); // label != start
                         }
                         // \u200C (Joining_Type:T)*(Joining_Type:{R,D})
-                        cpflags = getCharInfo(getCodePoint(it, label_end));
+                        cpflags = getCharInfo(*it++); // it != label_end
                         while (!(cpflags & (CAT_Joiner_R | CAT_Joiner_D))) {
                             if (!(cpflags & CAT_Joiner_T) || it == label_end)
                                 return false;
-                            cpflags = getCharInfo(getCodePoint(it, label_end));
+                            cpflags = getCharInfo(*it++); // it != label_end
                         }
-                        // HACK: kadangi 0x200C yra Non_Joining (U); 0x200D yra Join_Causing (C)
-                        // reiškia ne L, D, R, T; tai toliau tęsti ciklą galima nuo čia padidinto it
+                        // HACK: because 0x200C is Non_Joining (U); 0x200D is Join_Causing (C), i.e.
+                        // not L, D, R, T; then the cycle can be continued with `it` increased here
                     }
                 } else if (cp == 0x200D) {
                     //  ZERO WIDTH JOINER
                     if (start == label ||
-                        !(getCharInfo(prevCodePoint(label, start)) & CAT_Virama)
+                        !(getCharInfo(*(--start)) & CAT_Virama)  // label != start
                         ) {
                         return false;
                     }
@@ -208,10 +205,10 @@ static bool validate_label(const char16_t* label, const char16_t* label_end, Opt
     return true;
 }
 
-inline bool is_bidi(const char16_t* first, const char16_t* last) {
+inline bool is_bidi(const char32_t* first, const char32_t* last) {
     // https://tools.ietf.org/html/rfc5893#section-2
     for (auto it = first; it != last;) {
-        const uint32_t cpflags = getCharInfo(getCodePoint(it, last));
+        const uint32_t cpflags = getCharInfo(*it++); // it != last
         // A "Bidi domain name" is a domain name that contains at least one RTL
         // label. An RTL label is a label that contains at least one character
         // of type R, AL, or AN.
@@ -221,7 +218,7 @@ inline bool is_bidi(const char16_t* first, const char16_t* last) {
     return false;
 }
 
-static bool validate_bidi(const char16_t* label, const char16_t* label_end, int& bidiRes) {
+static bool validate_bidi(const char32_t* label, const char32_t* label_end, int& bidiRes) {
     // To check rules the label must have at least one character
     if (label == label_end)
         return true;
@@ -233,13 +230,13 @@ static bool validate_bidi(const char16_t* label, const char16_t* label_end, int&
     }
 
     // 1. The first character must be a character with Bidi property L, R, or AL
-    uint32_t cpflags = getCharInfo(getCodePoint(label, label_end));
+    uint32_t cpflags = getCharInfo(*label++); // label != label_end
     if (cpflags & CAT_Bidi_R_AL) {
         // RTL
         uint32_t end_cpflags = cpflags;
         uint32_t all_cpflags = 0;
         for (auto it = label; it != label_end;) {
-            cpflags = getCharInfo(getCodePoint(it, label_end));
+            cpflags = getCharInfo(*it++); // it != label_end
             // 2. R, AL, AN, EN, ES, CS, ET, ON, BN, NSM
             if (!(cpflags & (CAT_Bidi_R_AL | CAT_Bidi_AN | CAT_Bidi_EN | CAT_Bidi_ES_CS_ET_ON_BN | CAT_Bidi_NSM)))
                 return false;
@@ -261,7 +258,7 @@ static bool validate_bidi(const char16_t* label, const char16_t* label_end, int&
         // LTR
         uint32_t end_cpflags = cpflags;
         for (auto it = label; it != label_end;) {
-            cpflags = getCharInfo(getCodePoint(it, label_end));
+            cpflags = getCharInfo(*it++); // it != label_end
 #if 0
             // 5. L, EN, ES, CS, ET, ON, BN, NSM
             if (!(cpflags & (CAT_Bidi_L | CAT_Bidi_EN | CAT_Bidi_ES_CS_ET_ON_BN | CAT_Bidi_NSM))) {
@@ -309,23 +306,24 @@ static bool validate_bidi(const char16_t* label, const char16_t* label_end, int&
     return true;
 }
 
-bool ToASCII(std::u16string& domain, const char16_t* input, const char16_t* input_end, Option options) {
+bool ToASCII(std::string& domain, const char16_t* input, const char16_t* input_end, Option options) {
     bool ok;
     // A1
-    ok = processing(domain, input, input_end, options);
+    std::u32string result;
+    ok = processing(result, input, input_end, options);
 
     // A2 - Break the result into labels at U+002E FULL STOP
-    if (domain.length() == 0) {
+    if (result.length() == 0) {
         // to simplify root label detection
         if (has(options, Option::VerifyDnsLength))
             ok = false;
     } else {
-        const char16_t* first = domain.data();
-        const char16_t* last = domain.data() + domain.length();
+        const char32_t* first = result.data();
+        const char32_t* last = result.data() + result.length();
         size_t domain_len = static_cast<size_t>(-1);
         bool first_label = true;
-        std::u16string encoded;
-        split(first, last, 0x002E, [&](const char16_t* label, const char16_t* label_end) {
+        std::string encoded;
+        split(first, last, 0x002E, [&](const char32_t* label, const char32_t* label_end) {
             // root is ending empty label
             const bool is_root = (label == last);
 
@@ -338,9 +336,9 @@ bool ToASCII(std::u16string& domain, const char16_t* input, const char16_t* inpu
 
             // A3 - to Punycode
             const size_t label_start_ind = encoded.length();
-            if (std::any_of(label, label_end, [](char16_t ch) { return ch >= 0x80; })) {
+            if (std::any_of(label, label_end, [](char32_t ch) { return ch >= 0x80; })) {
                 // has non-ASCII
-                std::u16string alabel;
+                std::string alabel;
                 if (punycode::encode(alabel, label, label_end) == punycode::status::success) {
                     encoded.push_back('x');
                     encoded.push_back('n');
@@ -378,7 +376,7 @@ bool ToASCII(std::u16string& domain, const char16_t* input, const char16_t* inpu
     return ok;
 }
 
-bool ToUnicode(std::u16string& domain, const char16_t* input, const char16_t* input_end, Option options) {
+bool ToUnicode(std::u32string& domain, const char16_t* input, const char16_t* input_end, Option options) {
     // Processing, using Nontransitional_Processing
     return processing(domain, input, input_end, options & ~Option::Transitional);
 }

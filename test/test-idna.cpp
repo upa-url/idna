@@ -313,7 +313,6 @@ void run_punycode_tests(const char* file_name)
 
     int line_num = 0;
     std::string line;
-    std::u16string output;
     std::string case_name;
     while (std::getline(file, line)) {
         line_num++;
@@ -330,8 +329,9 @@ void run_punycode_tests(const char* file_name)
         if (line.length() > 0) {
             try {
                 std::size_t pos = 0;
-                const std::u16string inp_source = get_column16(line, pos);
-                const std::u16string inp_encoded = get_column16(line, pos);
+                const auto inp_source = get_column32(line, pos);
+                const auto inp_encoded8 = get_column8(line, pos);
+                const auto inp_encoded = std::u32string{ inp_encoded8.begin(), inp_encoded8.end() };
 
                 // test
                 if (case_name.empty()) case_name = line;
@@ -339,14 +339,14 @@ void run_punycode_tests(const char* file_name)
                     bool ok;
 
                     // encode to punycode
-                    output.clear(); // because punycode::encode(..) appends
-                    ok = upa::idna::punycode::encode(output, inp_source.data(), inp_source.data() + inp_source.length()) == upa::idna::punycode::status::success;
-                    tc.assert_equal(inp_encoded, output, "punycode::encode");
+                    std::string out_encoded; // punycode::encode(..) appends
+                    ok = upa::idna::punycode::encode(out_encoded, inp_source.data(), inp_source.data() + inp_source.length()) == upa::idna::punycode::status::success;
+                    tc.assert_equal(inp_encoded8, out_encoded, "punycode::encode");
 
                     // decode from punycode
-                    output.clear();
-                    ok = upa::idna::punycode::decode(output, inp_encoded.data(), inp_encoded.data() + inp_encoded.length()) == upa::idna::punycode::status::success;
-                    tc.assert_equal(inp_source, output, "punycode::decode");
+                    std::u32string out_decoded; // punycode::decode(..) appends
+                    ok = upa::idna::punycode::decode(out_decoded, inp_encoded.data(), inp_encoded.data() + inp_encoded.length()) == upa::idna::punycode::status::success;
+                    tc.assert_equal(inp_source, out_decoded, "punycode::decode");
                 });
             }
             catch (std::exception& ex) {
