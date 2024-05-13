@@ -6,11 +6,6 @@
 // UTF-16 iterate
 
 template <class T>
-inline bool is_surrogate(T ch) {
-    return (ch & 0xFFFFF800) == 0xD800;
-}
-
-template <class T>
 inline bool is_surrogate_lead(T ch) {
     return (ch & 0xFFFFFC00) == 0xD800;
 }
@@ -29,8 +24,7 @@ inline uint32_t get_suplementary(uint32_t lead, uint32_t trail) {
 
 // assumes it != last
 
-template <class InputIt>
-inline uint32_t getCodePoint(InputIt& it, InputIt last) {
+inline uint32_t getCodePoint(const char16_t*& it, const char16_t* last) {
     // assume it != last
     const uint32_t c1 = *it++;
     if (is_surrogate_lead(c1) && it != last) {
@@ -41,41 +35,6 @@ inline uint32_t getCodePoint(InputIt& it, InputIt last) {
         }
     }
     return c1;
-}
-
-template <class InputIt>
-inline uint32_t prevCodePoint(InputIt first, InputIt& it) {
-    // assume it != first
-    const uint32_t c2 = *(--it);
-    if (is_surrogate_trail(c2) && it != first) {
-        const uint32_t c1 = *(--it);
-        if (is_surrogate_lead(c1)) {
-            return get_suplementary(c1, c2);
-        }
-        ++it;
-    }
-    return c2;
-}
-
-template <class InputIt>
-inline uint32_t peekCodePoint(InputIt it, InputIt last) {
-    return getCodePoint(it, last);
-}
-
-// safe
-
-template <class InputIt>
-inline size_t pos_of_code_point_at(size_t count, InputIt it, InputIt last) {
-    InputIt start = it;
-    while (count && it != last) {
-        const uint32_t c1 = *it++;
-        if (is_surrogate_lead(c1) && it != last) {
-            if (is_surrogate_trail(*it))
-                ++it;
-        }
-        --count;
-    }
-    return std::distance(start, it);
 }
 
 #endif // ITERATE_UTF16_H
