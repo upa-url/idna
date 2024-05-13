@@ -1,10 +1,10 @@
 
 
 #include "upa/idna/idna.h"
+#include "upa/idna/idna_table.h"
+#include "upa/idna/iterate_utf.h"
 #include "upa/idna/nfc.h"
 #include "upa/idna/punycode.h"
-#include "idna_table.h"
-#include "iterate_utf16.h"
 
 #include <algorithm>
 #include <string>

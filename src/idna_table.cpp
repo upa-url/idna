@@ -1,4 +1,4 @@
-#include "idna_table.h"
+#include "upa/idna/idna_table.h"
 
 // BEGIN-GENERATED
 std::uint32_t blockData[] = {
