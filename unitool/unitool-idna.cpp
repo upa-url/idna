@@ -25,7 +25,9 @@ int main(int argc, char* argv[])
 // ==================================================================
 // Make all in one mapping table
 
-#include "../src/idna_table.h"
+// Definitions of the CP_... constants
+#include "../include/upa/idna/idna_table.h"
+using namespace upa::idna::util;
 
 // char mapping to char type
 using char_to_t = char32_t;

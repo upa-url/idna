@@ -1,8 +1,12 @@
-#ifndef IDNA_TABLE_H
-#define IDNA_TABLE_H
+#ifndef UPA_IDNA_TABLE_H
+#define UPA_IDNA_TABLE_H
 
 #include <cstddef>
 #include <cstdint>
+
+namespace upa {
+namespace idna {
+namespace util {
 
 const uint32_t CP_DISALLOWED = 0;
 const uint32_t CP_VALID = 0x0001 << 16;
@@ -83,4 +87,8 @@ inline size_t apply_mapping(uint32_t val, StrT& output) {
     return 0;
 }
 
-#endif
+} // namespace util
+} // namespace idna
+} // namespace upa
+
+#endif // UPA_IDNA_TABLE_H

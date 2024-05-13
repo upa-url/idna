@@ -1,5 +1,9 @@
 #include "upa/idna/idna_table.h"
 
+namespace upa {
+namespace idna {
+namespace util {
+
 // BEGIN-GENERATED
 std::uint32_t blockData[] = {
   0x40050000, 0x40050000, 0x40050000, 0x40050000, 0x40050000, 0x40050000, 0x40050000, 0x40050000,
@@ -2108,3 +2112,7 @@ char32_t allCharsTo[] = {
 };
 
 // END-GENERATED
+
+} // namespace util
+} // namespace idna
+} // namespace upa

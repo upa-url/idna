@@ -1,7 +1,11 @@
-#ifndef ITERATE_UTF16_H
-#define ITERATE_UTF16_H
+#ifndef UPA_IDNA_ITERATE_UTF_H
+#define UPA_IDNA_ITERATE_UTF_H
 
 #include <cstdint>
+
+namespace upa {
+namespace idna {
+namespace util {
 
 // UTF-16 iterate
 
@@ -37,4 +41,8 @@ inline uint32_t getCodePoint(const char16_t*& it, const char16_t* last) {
     return c1;
 }
 
-#endif // ITERATE_UTF16_H
+} // namespace util
+} // namespace idna
+} // namespace upa
+
+#endif // UPA_IDNA_ITERATE_UTF_H

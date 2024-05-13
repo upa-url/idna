@@ -43,6 +43,8 @@ static bool validate_label(const char32_t* label, const char32_t* label_end, Opt
 static bool validate_bidi(const char32_t* label, const char32_t* label_end, int& bidiRes);
 
 static bool processing(std::u32string& domain, const char16_t* input, const char16_t* input_end, Option options) {
+    using namespace util;
+
     bool error = false;
     std::u32string mapped;
 
@@ -114,6 +116,8 @@ static bool processing(std::u32string& domain, const char16_t* input, const char
 }
 
 static bool validate_label(const char32_t* label, const char32_t* label_end, Option options, bool full_check, int& bidiRes) {
+    using namespace util;
+
     if (label != label_end) {
         // V1 - The label must be in Unicode Normalization Form NFC
         if (full_check && !is_normalized_nfc(label, label_end))
@@ -206,6 +210,8 @@ static bool validate_label(const char32_t* label, const char32_t* label_end, Opt
 }
 
 inline bool is_bidi(const char32_t* first, const char32_t* last) {
+    using namespace util;
+
     // https://tools.ietf.org/html/rfc5893#section-2
     for (auto it = first; it != last;) {
         const uint32_t cpflags = getCharInfo(*it++); // it != last
@@ -219,6 +225,8 @@ inline bool is_bidi(const char32_t* first, const char32_t* last) {
 }
 
 static bool validate_bidi(const char32_t* label, const char32_t* label_end, int& bidiRes) {
+    using namespace util;
+
     // To check rules the label must have at least one character
     if (label == label_end)
         return true;
