@@ -25,14 +25,16 @@ add_executable(test-nfc
   src/nfc_table.cpp
 )
 
+add_executable(test-utf
+  test/test-utf.cpp
+)
+
 # Testing
 
 enable_testing()
 
-add_test(NAME test-idna
-  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test
-  COMMAND ${CMAKE_CURRENT_BINARY_DIR}/test-idna)
-
-add_test(NAME test-nfc
-  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test
-  COMMAND ${CMAKE_CURRENT_BINARY_DIR}/test-nfc)
+foreach(test_name test-idna test-nfc test-utf)
+  add_test(NAME  ${test_name}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test
+    COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${test_name})
+endforeach()

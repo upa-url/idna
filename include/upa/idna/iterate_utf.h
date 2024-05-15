@@ -11,7 +11,52 @@ namespace upa {
 namespace idna {
 namespace util {
 
-// UTF-16 iterate
+// Get code point from UTF-8
+
+constexpr char32_t kReplacementCharacter = 0xFFFD;
+
+// https://encoding.spec.whatwg.org/#utf-8-decoder
+inline uint32_t getCodePoint(const char*& it, const char* last) {
+    const auto uchar = [](char c) { return static_cast<unsigned char>(c); };
+    // assume it != last
+    uint32_t c1 = uchar(*it++);
+    if (c1 >= 0x80) {
+        if (c1 < 0xC2 || c1 > 0xF4)
+            return kReplacementCharacter;
+        if (c1 <= 0xDF) {
+            // 2-bytes
+            if (it == last || uchar(*it) < 0x80 || uchar(*it) > 0xBF)
+                return kReplacementCharacter;
+            c1 = ((c1 & 0x1F) << 6) | (uchar(*it++) & 0x3F);
+        } else if (c1 <= 0xEF) {
+            // 3-bytes
+            const unsigned char clb = c1 == 0xE0 ? 0xA0 : 0x80;
+            const unsigned char cub = c1 == 0xED ? 0x9F : 0xBF;
+            if (it == last || uchar(*it) < clb || uchar(*it) > cub)
+                return kReplacementCharacter;
+            c1 = ((c1 & 0x0F) << 6) | (uchar(*it++) & 0x3F);
+            if (it == last || uchar(*it) < 0x80 || uchar(*it) > 0xBF)
+                return kReplacementCharacter;
+            c1 = (c1 << 6) | (uchar(*it++) & 0x3F);
+        } else {
+            // 4-bytes
+            const unsigned char clb = c1 == 0xF0 ? 0x90 : 0x80;
+            const unsigned char cub = c1 == 0xF4 ? 0x8F : 0xBF;
+            if (it == last || uchar(*it) < clb || uchar(*it) > cub)
+                return kReplacementCharacter;
+            c1 = ((c1 & 0x07) << 6) | (uchar(*it++) & 0x3F);
+            if (it == last || uchar(*it) < 0x80 || uchar(*it) > 0xBF)
+                return kReplacementCharacter;
+            c1 = (c1 << 6) | (uchar(*it++) & 0x3F);
+            if (it == last || uchar(*it) < 0x80 || uchar(*it) > 0xBF)
+                return kReplacementCharacter;
+            c1 = (c1 << 6) | (uchar(*it++) & 0x3F);
+        }
+    }
+    return c1;
+}
+
+// Get code point from UTF-16
 
 template <class T>
 inline bool is_surrogate_lead(T ch) {
@@ -43,6 +88,13 @@ inline uint32_t getCodePoint(const char16_t*& it, const char16_t* last) {
         }
     }
     return c1;
+}
+
+// Get code point from UTF-32
+
+inline uint32_t getCodePoint(const char32_t*& it, const char32_t*) {
+    // assume it != last
+    return *it++;
 }
 
 } // namespace util
