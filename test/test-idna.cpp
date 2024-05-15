@@ -21,8 +21,8 @@ inline std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, T
 #include "ddt/DataDrivenTest.hpp"
 
 
-void run_idna_tests_v2(const char* file_name);
-void run_punycode_tests(const char* file_name);
+int run_idna_tests_v2(const char* file_name);
+int run_punycode_tests(const char* file_name);
 static std::string get_column8(const std::string& line, std::size_t& pos);
 static std::u16string get_column16(const std::string& line, std::size_t& pos);
 static std::u32string get_column32(const std::string& line, std::size_t& pos);
@@ -30,15 +30,17 @@ static bool is_error(const std::string& col);
 
 int main()
 {
-    run_idna_tests_v2("data/IdnaTestV2.txt");
+    int err = 0;
 
-    run_punycode_tests("data/punycode-test.txt");
-    run_punycode_tests("data/punycode-test-mano.txt");
+    err |= run_idna_tests_v2("data/IdnaTestV2.txt");
 
-    return 0;
+    err |= run_punycode_tests("data/punycode-test.txt");
+    err |= run_punycode_tests("data/punycode-test-mano.txt");
+
+    return err;
 }
 
-void run_idna_tests_v2(const char* file_name)
+int run_idna_tests_v2(const char* file_name)
 {
     DataDrivenTest ddt;
     ddt.config_show_passed(false);
@@ -48,7 +50,7 @@ void run_idna_tests_v2(const char* file_name)
     std::ifstream file(file_name, std::ios_base::in);
     if (!file.is_open()) {
         std::cerr << "Can't open tests file: " << file_name << std::endl;
-        return;
+        return 1;
     }
 
     int line_num = 0;
@@ -120,6 +122,7 @@ void run_idna_tests_v2(const char* file_name)
             }
         }
     }
+    return ddt.result();
 }
 
 inline static void AsciiTrimSpaceTabs(const char*& first, const char*& last) {
@@ -298,7 +301,7 @@ inline std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, T
 
 #include "upa/idna/punycode.h"
 
-void run_punycode_tests(const char* file_name)
+int run_punycode_tests(const char* file_name)
 {
     DataDrivenTest ddt;
     ddt.config_show_passed(false);
@@ -308,7 +311,7 @@ void run_punycode_tests(const char* file_name)
     std::ifstream file(file_name, std::ios_base::in);
     if (!file.is_open()) {
         std::cerr << "Can't open tests file: " << file_name << std::endl;
-        return;
+        return 1;
     }
 
     int line_num = 0;
@@ -356,5 +359,5 @@ void run_punycode_tests(const char* file_name)
         }
         case_name.clear();
     }
-
+    return ddt.result();
 }

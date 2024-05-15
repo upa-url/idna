@@ -11,13 +11,11 @@ inline std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, T
 
 using namespace upa::tools;
 
-static void run_nfc_tests(const char* file_name);
+static int run_nfc_tests(const char* file_name);
 
 int main()
 {
-    run_nfc_tests("data/NormalizationTest.txt");
-
-    return 0;
+    return run_nfc_tests("data/NormalizationTest.txt");
 }
 
 static std::u32string get_col_str32(const std::string& line, std::size_t& pos)
@@ -44,7 +42,7 @@ inline std::u32string toNFD(std::u32string str)
     return str;
 }
 
-static void run_nfc_tests(const char* file_name)
+static int run_nfc_tests(const char* file_name)
 {
     DataDrivenTest ddt;
     ddt.config_show_passed(false);
@@ -54,7 +52,7 @@ static void run_nfc_tests(const char* file_name)
     std::ifstream file(file_name, std::ios_base::in);
     if (!file.is_open()) {
         std::cerr << "Can't open tests file: " << file_name << std::endl;
-        return;
+        return 1;
     }
 
     int line_num = 0;
@@ -99,6 +97,7 @@ static void run_nfc_tests(const char* file_name)
             }
         }
     }
+    return ddt.result();
 }
 
 // stream operator
