@@ -1,3 +1,7 @@
+// Copyright 2024 Rimas Misevičius
+// Distributed under the BSD-style license that can be
+// found in the LICENSE file.
+//
 #ifndef UPA_IDNA_NFC_TABLE
 #define UPA_IDNA_NFC_TABLE
 

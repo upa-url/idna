@@ -1,4 +1,7 @@
-
+// Copyright 2024 Rimas Misevičius
+// Distributed under the BSD-style license that can be
+// found in the LICENSE file.
+//
 #include "upa/idna/nfc.h"
 
 #include "../unitool/unicode_data_tools.h"

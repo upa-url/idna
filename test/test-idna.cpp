@@ -1,6 +1,7 @@
-// idna_test.cpp : Defines the entry point for the console application.
+// Copyright 2017-2024 Rimas Misevičius
+// Distributed under the BSD-style license that can be
+// found in the LICENSE file.
 //
-
 #include "idna_lib.h"
 #include <algorithm>
 #include <cassert>
