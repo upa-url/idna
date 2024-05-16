@@ -4,7 +4,6 @@
 //
 #include "upa/idna/idna.h"
 #include "upa/idna/idna_table.h"
-#include "upa/idna/iterate_utf.h"
 #include "upa/idna/nfc.h"
 #include "upa/idna/punycode.h"
 
@@ -28,12 +27,6 @@ inline void split(InputIt first, InputIt last, const T& delim, FunT output) {
     }
 }
 
-// Bit flags
-
-inline bool has(Option option, const Option value) {
-    return (option & value) == value;
-}
-
 // Processing
 
 enum BidiRes : int {
@@ -44,48 +37,10 @@ enum BidiRes : int {
 static bool validate_label(const char32_t* label, const char32_t* label_end, Option options, bool full_check, int& bidiRes);
 static bool validate_bidi(const char32_t* label, const char32_t* label_end, int& bidiRes);
 
-static bool processing(std::u32string& domain, const char16_t* input, const char16_t* input_end, Option options) {
+static bool processing_mapped(std::u32string& domain, const std::u32string& mapped, Option options) {
     using namespace util;
 
     bool error = false;
-    std::u32string mapped;
-
-    // P1 - Map
-    const uint32_t status_mask = getStatusMask(has(options, Option::UseSTD3ASCIIRules));
-    for (auto it = input; it != input_end; ) {
-        const uint32_t cp = getCodePoint(it, input_end);
-        const uint32_t value = getCharInfo(cp);
-
-        switch (value & status_mask) {
-        case CP_VALID:
-            mapped.push_back(cp);
-            break;
-        case CP_MAPPED:
-            if (has(options, Option::Transitional) && cp == 0x1E9E) {
-                // replace U+1E9E capital sharp s by “ss”
-                mapped.append(U"ss", 2);
-            } else {
-                apply_mapping(value, mapped);
-            }
-            break;
-        case CP_DEVIATION:
-            if (has(options, Option::Transitional)) {
-                apply_mapping(value, mapped);
-            } else {
-                mapped.push_back(cp);
-            }
-            break;
-        default:
-            // CP_DISALLOWED
-            // CP_NO_STD3_MAPPED, CP_NO_STD3_VALID if Option::UseSTD3ASCIIRules
-            // Starting with Unicode 15.1.0 - don't record an error (error = true)
-            mapped.push_back(cp);
-            break;
-        }
-    }
-
-    // P2 - Normalize
-    normalize_nfc(mapped);
 
     // P3 - Break
     int bidiRes = 0;
@@ -125,7 +80,7 @@ static bool validate_label(const char32_t* label, const char32_t* label_end, Opt
         if (full_check && !is_normalized_nfc(label, label_end))
             return false;
 
-        if (has(options, Option::CheckHyphens)) {
+        if (detail::has(options, Option::CheckHyphens)) {
             // V2
             const size_t label_length = label_end - label;
             if (label_length >= 4 && label[2] == '-' && label[3] == '-')
@@ -151,8 +106,8 @@ static bool validate_label(const char32_t* label, const char32_t* label_end, Opt
         // V7
         // TODO: if (full_check)
         const uint32_t valid_mask = getValidMask(
-            has(options, Option::UseSTD3ASCIIRules),
-            has(options, Option::Transitional));
+            detail::has(options, Option::UseSTD3ASCIIRules),
+            detail::has(options, Option::Transitional));
         for (auto it = label; it != label_end;) {
             const uint32_t cpflags = getCharInfo(*it++); // it != label_end
             if ((cpflags & valid_mask) != CP_VALID) {
@@ -161,7 +116,7 @@ static bool validate_label(const char32_t* label, const char32_t* label_end, Opt
         }
 
         // V8
-        if (has(options, Option::CheckJoiners)) {
+        if (detail::has(options, Option::CheckJoiners)) {
             // https://tools.ietf.org/html/rfc5892#appendix-A
             for (auto it = label; it != label_end;) {
                 auto start = it;
@@ -203,7 +158,7 @@ static bool validate_label(const char32_t* label, const char32_t* label_end, Opt
         }
 
         // V9
-        if (has(options, Option::CheckBidi)) {
+        if (detail::has(options, Option::CheckBidi)) {
             if (!validate_bidi(label, label_end, bidiRes))
                 return false;
         }
@@ -316,16 +271,17 @@ static bool validate_bidi(const char32_t* label, const char32_t* label_end, int&
     return true;
 }
 
-bool ToASCII(std::string& domain, const char16_t* input, const char16_t* input_end, Option options) {
-    bool ok;
+namespace detail {
+
+bool to_ascii_mapped(std::string& domain, std::u32string&& mapped, Option options) {
     // A1
     std::u32string result;
-    ok = processing(result, input, input_end, options);
+    bool ok = processing_mapped(result, mapped, options);
 
     // A2 - Break the result into labels at U+002E FULL STOP
     if (result.length() == 0) {
         // to simplify root label detection
-        if (has(options, Option::VerifyDnsLength))
+        if (detail::has(options, Option::VerifyDnsLength))
             ok = false;
     } else {
         const char32_t* first = result.data();
@@ -364,7 +320,7 @@ bool ToASCII(std::string& domain, const char16_t* input, const char16_t* input_e
             }
 
             // A4 - DNS length restrictions
-            if (has(options, Option::VerifyDnsLength) && !is_root) {
+            if (detail::has(options, Option::VerifyDnsLength) && !is_root) {
                 const size_t label_length = encoded.length() - label_start_ind;
                 // A4_2
                 if (label_length < 1 || label_length > 63)
@@ -377,7 +333,7 @@ bool ToASCII(std::string& domain, const char16_t* input, const char16_t* input_e
         });
 
         // A4_1
-        if (has(options, Option::VerifyDnsLength) && domain_len == 0)
+        if (detail::has(options, Option::VerifyDnsLength) && domain_len == 0)
             ok = false;
 
         domain = std::move(encoded);
@@ -386,11 +342,12 @@ bool ToASCII(std::string& domain, const char16_t* input, const char16_t* input_e
     return ok;
 }
 
-bool ToUnicode(std::u32string& domain, const char16_t* input, const char16_t* input_end, Option options) {
+bool to_unicode_mapped(std::u32string& domain, std::u32string&& mapped, Option options) {
     // Processing, using Nontransitional_Processing
-    return processing(domain, input, input_end, options & ~Option::Transitional);
+    return processing_mapped(domain, mapped, options & ~Option::Transitional);
 }
 
 
+} // namespace detail
 } // namespace idna
 } // namespace upa
