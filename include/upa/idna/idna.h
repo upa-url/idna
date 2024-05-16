@@ -89,13 +89,13 @@ bool to_unicode_mapped(std::u32string& domain, std::u32string&& mapped, Option o
 } // namespace detail
 
 template <typename CharT>
-bool ToASCII(std::string& domain, const CharT* input, const CharT* input_end, Option options) {
+bool to_ascii(std::string& domain, const CharT* input, const CharT* input_end, Option options) {
     // P1 - Map and further processing
     return detail::to_ascii_mapped(domain, detail::map(input, input_end, options), options);
 }
 
 template <typename CharT>
-bool ToUnicode(std::u32string& domain, const CharT* input, const CharT* input_end, Option options) {
+bool to_unicode(std::u32string& domain, const CharT* input, const CharT* input_end, Option options) {
     // P1 - Map and further processing
     return detail::to_unicode_mapped(domain, detail::map(input, input_end, options), options);
 }
