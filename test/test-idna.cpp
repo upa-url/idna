@@ -28,6 +28,7 @@ static std::string get_column8(const std::string& line, std::size_t& pos);
 static std::u16string get_column16(const std::string& line, std::size_t& pos);
 static std::u32string get_column32(const std::string& line, std::size_t& pos);
 static bool is_error(const std::string& col);
+static bool is_error_of_to_unicode(const std::string& col);
 
 int main()
 {
@@ -81,7 +82,7 @@ int run_idna_tests_v2(const char* file_name)
 
                 // to_unicode
                 const std::string& exp_unicode(c2.empty() ? source : c2);
-                const bool exp_unicode_ok = !is_error(c3);
+                const bool exp_unicode_ok = !is_error_of_to_unicode(c3);
 
                 // to_ascii
                 const std::string& exp_ascii(c4.empty() ? exp_unicode : c4);
@@ -265,6 +266,14 @@ static std::u32string get_column32(const std::string& line, std::size_t& pos) {
 inline bool is_error(const std::string& col) {
     // error, if "[<non-empty>]"
     return col.length() >= 3 && col[0] == '[' && col[col.length() - 1] == ']';
+}
+
+inline bool is_error_of_to_unicode(const std::string& col) {
+    // Ignore compatibility errors
+    // For more information, see IdnaTestV2.txt
+    if (is_error(col))
+        return col != "[X4_2]";
+    return false;
 }
 
 // stream operator
