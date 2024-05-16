@@ -16,33 +16,16 @@ namespace {
 #if defined(_MSC_VER) && _MSC_VER >= 1900 && _MSC_VER < 1920
     // for VS 2015 and VS 2017 
     // https://stackoverflow.com/q/32055357
-    static std::wstring_convert<std::codecvt_utf8_utf16<uint16_t>, uint16_t> conv16;
     static std::wstring_convert<std::codecvt_utf8<uint32_t>, uint32_t> conv32;
 
-    inline std::u16string utf16_from_bytes(const std::string& input) {
-        auto out(conv16.from_bytes(input));
-        return std::u16string(reinterpret_cast<const char16_t*>(out.data()), out.length());
-    }
-    inline std::string utf16_to_bytes(const std::u16string& input) {
-        return conv16.to_bytes(
-            reinterpret_cast<const uint16_t*>(input.data()),
-            reinterpret_cast<const uint16_t*>(input.data() + input.length()));
-    }
     inline std::string utf32_to_bytes(const std::u32string& input) {
         return conv32.to_bytes(
             reinterpret_cast<const uint32_t*>(input.data()),
             reinterpret_cast<const uint32_t*>(input.data() + input.length()));
     }
 #else
-    static std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> conv16;
     static std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> conv32;
 
-    inline std::u16string utf16_from_bytes(const std::string& input) {
-        return conv16.from_bytes(input);
-    }
-    inline std::string utf16_to_bytes(const std::u16string& input) {
-        return conv16.to_bytes(input);
-    }
     inline std::string utf32_to_bytes(const std::u32string& input) {
         return conv32.to_bytes(input);
     }
@@ -53,10 +36,7 @@ namespace {
 namespace idna_lib {
 
     bool toASCII(std::string& output, const std::string& input, bool transitional) {
-        // to utf-16
-        const std::u16string input16{ utf16_from_bytes(input) };
-
-        const bool res = upa::idna::to_ascii(output, input16.data(), input16.data() + input16.length(),
+        const bool res = upa::idna::to_ascii(output, input.data(), input.data() + input.length(),
             upa::idna::Option::VerifyDnsLength |
             upa::idna::Option::CheckHyphens |
             upa::idna::Option::CheckBidi |
@@ -71,11 +51,9 @@ namespace idna_lib {
     }
 
     bool toUnicode(std::string& output, const std::string& input) {
-        // to utf-16
-        const std::u16string input16{ utf16_from_bytes(input) };
         std::u32string domain;
 
-        bool res = upa::idna::to_unicode(domain, input16.data(), input16.data() + input16.length(),
+        bool res = upa::idna::to_unicode(domain, input.data(), input.data() + input.length(),
             // upa::idna::Option::VerifyDnsLength |
             upa::idna::Option::CheckHyphens |
             upa::idna::Option::CheckBidi |
