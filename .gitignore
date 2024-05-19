@@ -1,3 +1,9 @@
+# CMake build directory
 /build/
+
+# Tests data
 /test/data/*
 !/test/data/punycode-*.txt
+
+# Visual Studio
+.vs/
