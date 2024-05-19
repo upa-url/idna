@@ -1,0 +1,10 @@
+{
+  "project": "upa/idna.h",
+  "target": "single_include/upa/idna.h",
+  "sources": [
+    "include/upa/idna.h"
+  ],
+  "include_paths": [
+    "include/upa/idna"
+  ]
+}
