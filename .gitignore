@@ -5,5 +5,8 @@
 /test/data/*
 !/test/data/punycode-*.txt
 
+# Unicode data
+/unitool/data/
+
 # Visual Studio
 .vs/
