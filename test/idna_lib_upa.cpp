@@ -10,7 +10,7 @@
 #include <locale>    // std::wstring_convert
 
 // IDNA (UTS46)
-#include "upa/idna/idna.h"
+#include "upa/idna.h"
 
 namespace {
 #if defined(_MSC_VER) && _MSC_VER >= 1900 && _MSC_VER < 1920

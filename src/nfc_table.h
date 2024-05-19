@@ -2,8 +2,8 @@
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
-#ifndef UPA_IDNA_NFC_TABLE
-#define UPA_IDNA_NFC_TABLE
+#ifndef UPA_IDNA_NFC_TABLE_H
+#define UPA_IDNA_NFC_TABLE_H
 
 #include <cstddef>
 #include <cstdint>
@@ -94,4 +94,4 @@ inline const char32_t* get_docomposition_chars(std::uint16_t di) {
 } // namespace idna
 } // namespace upa
 
-#endif // #ifndef UPA_IDNA_NFC_TABLE
+#endif // #ifndef UPA_IDNA_NFC_TABLE_H

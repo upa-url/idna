@@ -2,8 +2,8 @@
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
-#ifndef UPA_IDNA_TABLE_H
-#define UPA_IDNA_TABLE_H
+#ifndef UPA_IDNA_IDNA_TABLE_H
+#define UPA_IDNA_IDNA_TABLE_H
 
 #include <cstddef>
 #include <cstdint>
@@ -95,4 +95,4 @@ inline size_t apply_mapping(uint32_t val, StrT& output) {
 } // namespace idna
 } // namespace upa
 
-#endif // UPA_IDNA_TABLE_H
+#endif // UPA_IDNA_IDNA_TABLE_H
