@@ -100,6 +100,44 @@ inline bool to_unicode(std::u32string& domain, const CharT* input, const CharT* 
     return detail::to_unicode_mapped(domain, detail::map(input, input_end, options), options);
 }
 
+/// @brief Implements the domain to ASCII algorithm
+///
+/// See: https://url.spec.whatwg.org/#concept-domain-to-ascii
+///
+/// @param[out] output buffer to store result string
+/// @param[in]  domain input domain string
+/// @param[in]  domain_end the end of input domain string
+/// @param[in]  be_strict
+/// @return `true` on success, or `false` on failure
+template <typename CharT>
+inline bool domain_to_ascii(std::string& output, const CharT* domain, const CharT* domain_end, bool be_strict = false) {
+    const bool res = to_ascii(output, domain, domain_end, be_strict
+        ? Option::CheckBidi | Option::CheckJoiners | Option::UseSTD3ASCIIRules | Option::VerifyDnsLength
+        : Option::CheckBidi | Option::CheckJoiners);
+    // 3. If result is the empty string, domain-to-ASCII validation error, return failure.
+    //
+    // Note. Result of to_ascii can be the empty string if input:
+    // 1) consists entirely of IDNA ignored code points;
+    // 2) is "xn--".
+    return res && !output.empty();
+}
+
+/// @brief Implements the domain to Unicode algorithm
+///
+/// See: https://url.spec.whatwg.org/#concept-domain-to-unicode
+///
+/// @param[out] output buffer to store result string
+/// @param[in]  domain input domain string
+/// @param[in]  domain_end the end of input domain string
+/// @param[in]  be_strict
+/// @return `true` on success, or `false` on errors
+template <typename CharT>
+inline bool domain_to_unicode(std::u32string& output, const CharT* domain, const CharT* domain_end, bool be_strict = false) {
+    return to_unicode(output, domain, domain_end, be_strict
+        ? Option::CheckBidi | Option::CheckJoiners | Option::UseSTD3ASCIIRules
+        : Option::CheckBidi | Option::CheckJoiners);
+}
+
 } // namespace idna
 } // namespace upa
 
