@@ -138,6 +138,32 @@ inline bool domain_to_unicode(std::u32string& output, const CharT* domain, const
         : Option::CheckBidi | Option::CheckJoiners);
 }
 
+/// @brief Encodes Unicode version
+///
+/// The version is encoded as follows: <version 1st number> * 0x1000000 +
+/// <version 2nd number> * 0x10000 + <version 3rd number> * 0x100 + <version 4th number>
+///
+/// For example for Unicode version 15.1.0 it returns 0x0F010000
+///
+/// @param[in] n1 version 1st number
+/// @param[in] n2 version 2nd number
+/// @param[in] n3 version 3rd number
+/// @param[in] n4 version 4th number
+/// @return encoded Unicode version
+constexpr unsigned make_unicode_version(unsigned n1, unsigned n2 = 0,
+    unsigned n3 = 0, unsigned n4 = 0) noexcept {
+    return n1 << 24 | n2 << 16 | n3 << 8 | n4;
+}
+
+/// @brief Gets Unicode version that IDNA library conforms to
+///
+/// @return encoded Unicode version
+/// @see make_unicode_version
+inline unsigned unicode_version() {
+    return make_unicode_version(15, 1);
+}
+
+
 } // namespace idna
 } // namespace upa
 
