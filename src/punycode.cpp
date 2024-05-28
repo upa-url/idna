@@ -2,41 +2,44 @@
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
-#include "upa/idna/iterate_utf.h"
 #include "upa/idna/punycode.h"
 #include <algorithm>
 #include <type_traits>
 #include <vector>
 
+namespace upa {
+namespace idna {
+namespace punycode {
+
+namespace {
 
 // punycode_uint needs to be unsigned and needs to be
 // at least 26 bits wide.
 
-typedef uint32_t punycode_uint;
+using punycode_uint = std::uint32_t;
 
 // Bootstring parameters for Punycode
-enum {
-    base = 36, tmin = 1, tmax = 26, skew = 38, damp = 700,
-    initial_bias = 72, initial_n = 0x80, delimiter = 0x2D
-};
+
+constexpr punycode_uint base = 36;
+constexpr punycode_uint tmin = 1;
+constexpr punycode_uint tmax = 26;
+constexpr punycode_uint skew = 38;
+constexpr punycode_uint damp = 700;
+constexpr punycode_uint initial_bias = 72;
+constexpr punycode_uint initial_n = 0x80;
+constexpr char delimiter = 0x2D;
 
 // basic(cp) tests whether cp is a basic code point:
 template <class T>
-static inline bool basic(T cp) {
+constexpr bool basic(T cp) {
     return static_cast<typename std::make_unsigned<T>::type>(cp) < 0x80;
-}
-
-// delim(cp) tests whether cp is a delimiter:
-template <class T>
-static inline bool delim(T cp) {
-    return cp == delimiter;
 }
 
 // decode_digit(cp) returns the numeric value of a basic code
 // point (for use in representing integers) in the range 0 to
 // base-1, or base if cp does not represent a value.
 
-static inline punycode_uint decode_digit(punycode_uint cp) {
+constexpr punycode_uint decode_digit(punycode_uint cp) {
     return cp - 48 < 10 ? cp - 22 : cp - 65 < 26 ? cp - 65 :
         cp - 97 < 26 ? cp - 97 : base;
 }
@@ -45,7 +48,7 @@ static inline punycode_uint decode_digit(punycode_uint cp) {
 // (when used for representing integers) is d, which needs to be in
 // the range 0 to base-1. The lowercase form is used.
 
-static inline char encode_digit(punycode_uint d) {
+constexpr char encode_digit(punycode_uint d) {
     return d + 22 + 75 * (d < 26);
     /*  0..25 map to ASCII a..z */
     /* 26..35 map to ASCII 0..9 */
@@ -54,35 +57,35 @@ static inline char encode_digit(punycode_uint d) {
 // Platform-specific constants
 
 // maxint is the maximum value of a punycode_uint variable:
-static const punycode_uint maxint = -1;
+constexpr punycode_uint maxint = -1;
 
 // TODO: or = maxint
-static const size_t kCodePointIndexMask = 0x7FF;
-static const size_t kMaxCodePoints = kCodePointIndexMask + 1;
+constexpr std::size_t kCodePointIndexMask = 0x7FF;
+constexpr std::size_t kMaxCodePoints = kCodePointIndexMask + 1;
 
-typedef uint32_t punycode_item;
+using punycode_item = uint32_t;
 
-static inline punycode_item to_punycode_item(punycode_uint cp, size_t ind) {
-    return (static_cast<punycode_item>(cp) << 11) | ind;
+constexpr punycode_item to_punycode_item(punycode_uint cp, std::size_t ind) {
+    return (static_cast<punycode_item>(cp) << 11) | static_cast<punycode_item>(ind);
 }
-static inline punycode_uint get_item_cp(punycode_item item) {
+constexpr punycode_uint get_item_cp(punycode_item item) {
     return static_cast<punycode_uint>(item >> 11);
 }
-static inline punycode_uint get_item_ind(punycode_item item) {
+constexpr punycode_uint get_item_ind(punycode_item item) {
     return static_cast<punycode_uint>(item & kCodePointIndexMask);
 }
 
 // Bias adaptation function
 
-static punycode_uint adapt(punycode_uint delta, punycode_uint numpoints, bool firsttime)
+inline punycode_uint adapt(punycode_uint delta, punycode_uint numpoints, bool firsttime)
 {
-    punycode_uint k;
-
     delta = firsttime ? delta / damp : delta >> 1; // delta >> 1 is a faster way of doing delta / 2
     delta += delta / numpoints;
 
-    for (k = 0; delta > ((base - tmin) * tmax) / 2; k += base) {
+    punycode_uint k = 0;
+    while (delta > ((base - tmin) * tmax) / 2) {
         delta /= base - tmin;
+        k += base;
     }
 
     return k + (base - tmin + 1) * delta / (delta + skew);
@@ -93,33 +96,33 @@ static punycode_uint adapt(punycode_uint delta, punycode_uint numpoints, bool fi
 template <typename CharT>
 inline const CharT* find_delim(const CharT* first, const CharT* last) {
     for (auto it = last; it != first;) {
-        if (delim(*--it)) return it;
+        if (*--it == delimiter) return it;
     }
     return nullptr;
 }
 
+} // namespace
 
-namespace upa {
-namespace idna {
-namespace punycode {
 
 // Main encode function
 
 status encode(std::string& output, const char32_t* first, const char32_t* last) {
-    // ???
+
     // The Punycode spec assumes that the input length is the same type
     // of integer as a code point, so we need to convert the size_t to
     // a punycode_uint, which could overflow.
 
-    if (last - first > kMaxCodePoints) // TODO: code points!!!
+    if (last - first > kMaxCodePoints)
         return status::overflow;
+
+    output.reserve(output.size() + (last - first));
 
     // code point/index array
     std::vector<punycode_item> arrCpInd;
 
     // Handle the basic code points and fill code point/index array
-    size_t len0 = output.length();
-    size_t ind = 0;
+    const std::size_t len0 = output.length();
+    std::size_t ind = 0;
     for (auto it = first; it != last; ++it, ++ind) {
         const auto ch = *it;
         if (basic(ch)) {
@@ -135,7 +138,7 @@ status encode(std::string& output, const char32_t* first, const char32_t* last) 
     }
 
     // b is the number of basic code points
-    punycode_uint b = output.length() - len0;
+    const auto b = static_cast<punycode_uint>(output.length() - len0);
     if (b > 0) output.push_back(delimiter);
 
     // sort items by code point/index
@@ -167,7 +170,7 @@ status encode(std::string& output, const char32_t* first, const char32_t* last) 
 
         // calculate deltas
         punycode_uint next_delta = 0;
-        for (size_t j = 0; j < h; ++j) {
+        for (std::size_t j = 0; j < h; ++j) {
             const punycode_uint i = get_item_ind(arrCpInd[j]);
             if (i < ind) {
                 ++deltas[0]; // TODO: overflow
@@ -228,7 +231,7 @@ status decode(std::u32string& output, const char32_t* first, const char32_t* las
             return status::big_output;
 
         // basic code points to list
-        size_t ptr = 0;
+        std::size_t ptr = 0;
         for (auto it = first; it != pb; ++it) {
             const auto ch = *it;
             if (!basic(ch)) return status::bad_input;
@@ -242,14 +245,14 @@ status decode(std::u32string& output, const char32_t* first, const char32_t* las
     // Initialize the state:
 
     punycode_uint n = initial_n;
-    punycode_uint out = arrCpPtr.size(); // basic code points count
+    punycode_uint out = static_cast<punycode_uint>(arrCpPtr.size()); // basic code points count
     punycode_uint i = 0;
     punycode_uint bias = initial_bias;
 
     // Main decoding loop:  Start just after the last delimiter if any
     // basic code points were copied; start at the beginning otherwise.
 
-    size_t start_ptr = 0;
+    std::size_t start_ptr = 0;
     for (auto inp = first; inp != last; ++out) {
 
         // Decode a generalized variable-length integer into delta,
@@ -291,22 +294,23 @@ status decode(std::u32string& output, const char32_t* first, const char32_t* las
             arrCpPtr.push_back(to_punycode_item(n, start_ptr));
             start_ptr = arrCpPtr.size() - 1; // index of just inserted
         } else {
-            const size_t ptr = arrCpPtr.size();
-            size_t prev_ptr = start_ptr;
+            const std::size_t ptr = arrCpPtr.size();
+            std::size_t prev_ptr = start_ptr;
             for (punycode_uint count = 1; count < i; ++count) {
                 prev_ptr = get_item_ind(arrCpPtr[prev_ptr]);
             }
             // insert
-            const size_t next_ptr = get_item_ind(arrCpPtr[prev_ptr]);
+            const std::size_t next_ptr = get_item_ind(arrCpPtr[prev_ptr]);
             arrCpPtr.push_back(to_punycode_item(n, next_ptr));
             arrCpPtr[prev_ptr] = to_punycode_item(get_item_cp(arrCpPtr[prev_ptr]), ptr);
         }
         ++i;
     }
 
-    // convert list to utf-16
-    size_t ptr = start_ptr;
-    for (size_t count = arrCpPtr.size(); count > 0; --count) {
+    // append list values to output string
+    output.reserve(output.size() + arrCpPtr.size());
+    std::size_t ptr = start_ptr;
+    for (std::size_t count = arrCpPtr.size(); count > 0; --count) {
         output.push_back(get_item_cp(arrCpPtr[ptr]));
         ptr = get_item_ind(arrCpPtr[ptr]);
     }
