@@ -115,23 +115,17 @@ status encode(std::string& output, const char32_t* first, const char32_t* last) 
     if (last - first > kMaxCodePoints)
         return status::overflow;
 
-    output.reserve(output.size() + (last - first));
+    const auto input_length = static_cast<punycode_uint>(last - first);
 
-    // code point/index array
-    std::vector<punycode_item> arrCpInd;
+    // Handle the basic code points:
 
-    // Handle the basic code points and fill code point/index array
     const std::size_t len0 = output.length();
-    std::size_t ind = 0;
-    for (auto it = first; it != last; ++it, ++ind) {
+    output.reserve(len0 + input_length);
+    for (auto it = first; it != last; ++it) {
         const auto ch = *it;
         if (basic(ch)) {
             output.push_back(static_cast<char>(ch));
-            // for basic cp's only index-es
-            arrCpInd.push_back(to_punycode_item(0, ind));
-        } else if (ch <= 0x10FFFF) {
-            arrCpInd.push_back(to_punycode_item(ch, ind));
-        } else {
+        } else if (ch > 0x10FFFF) {
             // invalid codepoint
             return status::bad_input;
         }
@@ -141,10 +135,8 @@ status encode(std::string& output, const char32_t* first, const char32_t* last) 
     const auto b = static_cast<punycode_uint>(output.length() - len0);
     if (b > 0) output.push_back(delimiter);
 
-    // sort items by code point/index
-    std::sort(arrCpInd.begin(), arrCpInd.end());
-
     // Initialize the state:
+
     punycode_uint n = initial_n;
     punycode_uint delta = 0;
     punycode_uint bias = initial_bias;
@@ -152,63 +144,48 @@ status encode(std::string& output, const char32_t* first, const char32_t* last) 
     // Main encoding loop:
 
     // h is the number of code points that have been handled
-    std::vector<punycode_item> deltas;
-    for (punycode_uint h = b; h < arrCpInd.size();) {
-        const punycode_uint m = get_item_cp(arrCpInd[h]);
-        const punycode_uint ind = get_item_ind(arrCpInd[h]);
-        // end of m code points
-        punycode_uint next_h = h + 1;
-        while (next_h < arrCpInd.size() && get_item_cp(arrCpInd[next_h]) == m)
-            ++next_h;
-        // fill deltas
-        const punycode_uint count_m = next_h - h;
-        deltas.assign(count_m, 0);
+    for (punycode_uint h = b; h < input_length;) {
+        // All non-basic code points < n have been
+        // handled already. Find the next larger one:
+        punycode_uint m = maxint;
+        for (auto it = first; it != last; ++it) {
+            const auto ch = *it;
+            if (ch >= n && ch < m) m = ch;
+        }
 
         // Increase delta enough to advance the decoder's
         // <n,i> state to <m,0>, but guard against overflow:
-        deltas[0] = delta + (m - n) * (h + 1); // TODO: overflow
+        if (m - n > (maxint - delta) / (h + 1))
+            return status::overflow;
+        delta += (m - n) * (h + 1);
+        n = m;
 
-        // calculate deltas
-        punycode_uint next_delta = 0;
-        for (std::size_t j = 0; j < h; ++j) {
-            const punycode_uint i = get_item_ind(arrCpInd[j]);
-            if (i < ind) {
-                ++deltas[0]; // TODO: overflow
-            } else {
-                // TODO: use binary search
-                ++next_delta; // gal galima optimaliau?
-                for (punycode_uint hh = h + 1; hh < next_h; ++hh) {
-                    if (i < get_item_ind(arrCpInd[hh])) {
-                        ++deltas[hh - h]; // TODO: overflow
-                        --next_delta;
-                        break;
-                    }
+        for (auto it = first; it != last; ++it) {
+            const auto ch = *it;
+            if (ch < n) {
+                if (++delta == 0)
+                    return status::overflow;
+            }
+            if (ch == n) {
+                // Represent delta as a generalized variable-length integer:
+                punycode_uint q = delta;
+                for (punycode_uint k = base; ; k += base) {
+                    const punycode_uint t = k <= bias ? tmin :
+                        k >= bias + tmax ? tmax : k - bias;
+                    if (q < t) break;
+                    output.push_back(encode_digit(t + (q - t) % (base - t)));
+                    q = (q - t) / (base - t);
                 }
+
+                output.push_back(encode_digit(q));
+                bias = adapt(delta, h + 1, h == b);
+                delta = 0;
+                ++h;
             }
         }
 
-        // output
-        for (const punycode_uint h0 = h; h < next_h; ++h) {
-            delta = deltas[h - h0];
-
-            // Represent delta as a generalized variable-length integer:
-            punycode_uint q = delta;
-            for (punycode_uint k = base;; k += base) {
-                const punycode_uint t = k <= bias ? tmin :
-                    k >= bias + tmax ? tmax : k - bias;
-                if (q < t) break;
-                output.push_back(encode_digit(t + (q - t) % (base - t)));
-                q = (q - t) / (base - t);
-            }
-            output.push_back(encode_digit(q));
-            bias = adapt(delta, h + 1, h == b);
-        }
-
-        // initial delta for next char
-        delta = next_delta + 1;
-        n = m + 1;
+        ++delta, ++n;
     }
-
     return status::success;
 }
 
