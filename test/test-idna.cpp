@@ -35,6 +35,7 @@ int main()
     int err = 0;
 
     err |= run_idna_tests_v2("data/IdnaTestV2.txt");
+    err |= run_idna_tests_v2("data/IdnaTestV2-mano.txt");
 
     err |= run_punycode_tests("data/punycode-test.txt");
     err |= run_punycode_tests("data/punycode-test-mano.txt");

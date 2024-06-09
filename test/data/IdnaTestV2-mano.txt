@@ -1,0 +1,3 @@
+a.xn--.c; a..c; [XX]; ; [XX P4]; ;
+a.xn---.c; a.xn---.c; [XX]; ; [XX]; ;
+a.xn--ASCII-.c; a.ascii.c; [XX]; ; [XX]; ;

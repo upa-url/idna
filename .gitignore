@@ -3,6 +3,7 @@
 
 # Tests data
 /test/data/*
+!/test/data/*-mano.txt
 !/test/data/punycode-*.txt
 
 # Unicode data

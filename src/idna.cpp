@@ -53,13 +53,23 @@ static bool processing_mapped(std::u32string* pdecoded, const std::u32string& ma
         }
         // P4 - Convert/Validate
         if (label_end - label >= 4 && label[0] == 'x' && label[1] == 'n' && label[2] == '-' && label[3] == '-') {
-            std::u32string ulabel;
-            if (punycode::decode(ulabel, label + 4, label_end) == punycode::status::success) {
-                error = error || !validate_label(ulabel.data(), ulabel.data() + ulabel.length(), options & ~Option::Transitional, true, bidiRes);
-                if (pdecoded) pdecoded->append(ulabel);
+            if (*(label_end - 1) == '-' && label_end - label != 5) {
+                // For compatibility with ICU, report errors on "xn--" or "xn--ascii-" labels.
+                // Ignore "xn---", it will fail punycode::decode.
+                // More info: https://github.com/whatwg/url/issues/760#issuecomment-1462706617
+                error = true;
+                // Decode "xn--ascii-" to "ascii" for to_unicode:
+                if (pdecoded && label_end - label > 5)
+                    pdecoded->append(label + 4, label_end - 1);
             } else {
-                error = true; // punycode decode error
-                if (pdecoded) pdecoded->append(label, label_end);
+                std::u32string ulabel;
+                if (punycode::decode(ulabel, label + 4, label_end) == punycode::status::success) {
+                    error = error || !validate_label(ulabel.data(), ulabel.data() + ulabel.length(), options & ~Option::Transitional, true, bidiRes);
+                    if (pdecoded) pdecoded->append(ulabel);
+                } else {
+                    error = true; // punycode decode error
+                    if (pdecoded) pdecoded->append(label, label_end);
+                }
             }
         } else {
             error = error || !validate_label(label, label_end, options, false, bidiRes);
