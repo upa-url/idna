@@ -37,7 +37,7 @@ enum BidiRes : int {
 static bool validate_label(const char32_t* label, const char32_t* label_end, Option options, bool full_check, int& bidiRes);
 static bool validate_bidi(const char32_t* label, const char32_t* label_end, int& bidiRes);
 
-static bool processing_mapped(std::u32string& domain, const std::u32string& mapped, Option options) {
+static bool processing_mapped(std::u32string* pdecoded, const std::u32string& mapped, Option options) {
     using namespace util;
 
     bool error = false;
@@ -45,30 +45,28 @@ static bool processing_mapped(std::u32string& domain, const std::u32string& mapp
     // P3 - Break
     int bidiRes = 0;
     bool first_label = true;
-    std::u32string decoded;
     split(mapped.data(), mapped.data() + mapped.length(), 0x002E, [&](const char32_t* label, const char32_t* label_end) {
         if (first_label) {
             first_label = false;
         } else {
-            decoded.push_back('.');
+            if (pdecoded) pdecoded->push_back('.');
         }
         // P4 - Convert/Validate
         if (label_end - label >= 4 && label[0] == 'x' && label[1] == 'n' && label[2] == '-' && label[3] == '-') {
             std::u32string ulabel;
             if (punycode::decode(ulabel, label + 4, label_end) == punycode::status::success) {
                 error = error || !validate_label(ulabel.data(), ulabel.data() + ulabel.length(), options & ~Option::Transitional, true, bidiRes);
-                decoded.append(ulabel);
+                if (pdecoded) pdecoded->append(ulabel);
             } else {
                 error = true; // punycode decode error
-                decoded.append(label, label_end);
+                if (pdecoded) pdecoded->append(label, label_end);
             }
         } else {
             error = error || !validate_label(label, label_end, options, false, bidiRes);
-            decoded.append(label, label_end);
+            if (pdecoded) pdecoded->append(label, label_end);
         }
     });
 
-    domain = std::move(decoded);
     return !error;
 }
 
@@ -273,19 +271,18 @@ static bool validate_bidi(const char32_t* label, const char32_t* label_end, int&
 
 namespace detail {
 
-bool to_ascii_mapped(std::string& domain, std::u32string&& mapped, Option options) {
+bool to_ascii_mapped(std::string& domain, const std::u32string& mapped, Option options) {
     // A1
-    std::u32string result;
-    bool ok = processing_mapped(result, mapped, options);
+    bool ok = processing_mapped(nullptr, mapped, options);
 
     // A2 - Break the result into labels at U+002E FULL STOP
-    if (result.length() == 0) {
+    if (mapped.length() == 0) {
         // to simplify root label detection
         if (detail::has(options, Option::VerifyDnsLength))
             ok = false;
     } else {
-        const char32_t* first = result.data();
-        const char32_t* last = result.data() + result.length();
+        const char32_t* first = mapped.data();
+        const char32_t* last = mapped.data() + mapped.length();
         size_t domain_len = static_cast<size_t>(-1);
         bool first_label = true;
         std::string encoded;
@@ -342,9 +339,9 @@ bool to_ascii_mapped(std::string& domain, std::u32string&& mapped, Option option
     return ok;
 }
 
-bool to_unicode_mapped(std::u32string& domain, std::u32string&& mapped, Option options) {
+bool to_unicode_mapped(std::u32string& domain, const std::u32string& mapped, Option options) {
     // Processing, using Nontransitional_Processing
-    return processing_mapped(domain, mapped, options & ~Option::Transitional);
+    return processing_mapped(&domain, mapped, options & ~Option::Transitional);
 }
 
 

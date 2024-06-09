@@ -83,8 +83,8 @@ inline std::u32string map(const CharT* input, const CharT* input_end, Option opt
     return mapped;
 }
 
-bool to_ascii_mapped(std::string& domain, std::u32string&& mapped, Option options);
-bool to_unicode_mapped(std::u32string& domain, std::u32string&& mapped, Option options);
+bool to_ascii_mapped(std::string& domain, const std::u32string& mapped, Option options);
+bool to_unicode_mapped(std::u32string& domain, const std::u32string& mapped, Option options);
 
 } // namespace detail
 
