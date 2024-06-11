@@ -73,7 +73,7 @@ inline const codepoint_key_val* get_composition_data(std::uint16_t ci) {
 }
 
 // Decomposition data
-inline std::uint16_t get_docomposition_info(std::uint32_t cp) {
+inline std::uint16_t get_decomposition_info(std::uint32_t cp) {
     if (cp >= decomp_default_start)
         return decomp_default_value;
     return decomp_block[
@@ -82,11 +82,11 @@ inline std::uint16_t get_docomposition_info(std::uint32_t cp) {
     ];
 }
 
-inline std::size_t get_docomposition_len(std::uint16_t di) {
+inline std::size_t get_decomposition_len(std::uint16_t di) {
     return di >> 12;
 }
 
-inline const char32_t* get_docomposition_chars(std::uint16_t di) {
+inline const char32_t* get_decomposition_chars(std::uint16_t di) {
     return decomp_block_data + (di & 0xFFF);
 }
 

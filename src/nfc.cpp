@@ -111,12 +111,12 @@ void canonical_decompose(std::u32string& str)
             if (SIndex % hangul::TCount != 0)
                 out += hangul::TBase + SIndex % hangul::TCount; // T
         } else {
-            const auto cp_info = normalize::get_docomposition_info(cp);
+            const auto cp_info = normalize::get_decomposition_info(cp);
             if (cp_info) {
                 // decompose
                 out.append(
-                    normalize::get_docomposition_chars(cp_info),
-                    normalize::get_docomposition_len(cp_info)
+                    normalize::get_decomposition_chars(cp_info),
+                    normalize::get_decomposition_len(cp_info)
                 );
             } else {
                 // no decomposition
