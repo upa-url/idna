@@ -16,8 +16,9 @@ const uint32_t CP_DISALLOWED = 0;
 const uint32_t CP_VALID = 0x0001 << 16;
 const uint32_t CP_MAPPED = 0x0002 << 16;
 const uint32_t CP_DEVIATION = CP_VALID | CP_MAPPED; // 0x0003 << 16
-const uint32_t CP_NO_STD3_VALID = CP_VALID | (0x0004 << 16);
-const uint32_t CP_NO_STD3_MAPPED = CP_MAPPED | (0x0004 << 16);
+const uint32_t CP_DISALLOWED_STD3 = 0x0004 << 16;
+const uint32_t CP_NO_STD3_VALID = CP_VALID | CP_DISALLOWED_STD3;
+const uint32_t CP_NO_STD3_MAPPED = CP_MAPPED | CP_DISALLOWED_STD3;
 const uint32_t MAP_TO_ONE = 0x0008 << 16;
 // General_Category=Mark
 const uint32_t CAT_MARK = 0x0010 << 16;
@@ -49,6 +50,9 @@ const std::uint32_t specValue = 0x20000;
 extern std::uint32_t blockData[];
 extern std::uint16_t blockIndex[];
 extern char32_t allCharsTo[];
+
+extern const std::uint32_t comp_disallowed[5];
+extern const std::uint32_t comp_disallowed_std3[21];
 // END-GENERATED
 
 

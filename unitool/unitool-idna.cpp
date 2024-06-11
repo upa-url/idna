@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 //
 #include "unicode_data_tools.h"
+#include <unordered_set>
 
 using namespace upa::tools;
 
@@ -15,8 +16,14 @@ int main(int argc, char* argv[])
         std::cerr <<
             "unitool <data directory path>\n"
             "\n"
-            "Specify the directory path where the IdnaMappingTable.txt, DerivedBidiClass.txt, DerivedCombiningClass.txt,\n"
-            "DerivedGeneralCategory.txt, DerivedJoiningType.txt files are located.\n";
+            "Specify the directory path where the following files are located:\n"
+            " DerivedBidiClass.txt\n"
+            " DerivedCombiningClass.txt\n"
+            " DerivedGeneralCategory.txt\n"
+            " DerivedJoiningType.txt\n"
+            " DerivedNormalizationProps.txt\n"
+            " IdnaMappingTable.txt\n"
+            " UnicodeData.txt\n";
         return 1;
     }
     make_mapping_table(argv[1]);
@@ -70,6 +77,10 @@ struct char_item_less {
 };
 
 // Make mapping table
+
+static void make_comp_disallowed_tables(std::string data_path,
+    const std::vector<char_item>& arrChars,
+    std::ostream& fout_head, std::ostream& fout);
 
 void make_mapping_table(std::string data_path) {
     const int MAX_CODE_POINT = 0x10FFFF;
@@ -451,6 +462,111 @@ void make_mapping_table(std::string data_path) {
     }
     fout << "};\n\n";
 
+    // Make table of IDNA disallowed code points that can be changed by NFC
+    fout_head << '\n';
+    make_comp_disallowed_tables(data_path, arrChars, fout_head, fout);
+}
 
-    return;
+// Make table of IDNA disallowed code points that can be changed by NFC
+
+namespace hangul {
+    constexpr char32_t SBase = 0xAC00;
+    constexpr char32_t LBase = 0x1100;
+    constexpr char32_t VBase = 0x1161;
+    constexpr char32_t TBase = 0x11A7;
+    constexpr char32_t LCount = 19;
+    constexpr char32_t VCount = 21;
+    constexpr char32_t TCount = 28;
+    constexpr char32_t NCount = VCount * TCount; // 588
+    constexpr char32_t SCount = LCount * NCount; // 11172
+}
+
+bool is_hangul_composable(char32_t cp) {
+    if (cp >= hangul::SBase && cp < hangul::SBase + hangul::SCount)
+        return true;
+    if (cp >= hangul::LBase && cp < hangul::LBase + hangul::LCount)
+        return true;
+    if (cp >= hangul::VBase && cp < hangul::VBase + hangul::VCount)
+        return true;
+    if (cp >= hangul::TBase && cp < hangul::TBase + hangul::TCount)
+        return true;
+    return false;
+}
+
+void make_comp_disallowed_tables(std::string data_path,
+    const std::vector<char_item>& arrChars,
+    std::ostream& fout_head, std::ostream& fout)
+{
+    // Full composition exclusion
+    std::unordered_set<char32_t> composition_exclusion;
+    std::string file_name = data_path + "DerivedNormalizationProps.txt";
+    parse_UnicodeData<1>(file_name,
+        [&](int cp0, int cp1, const auto& col) {
+            if (col[0] == "Full_Composition_Exclusion") {
+                for (auto cp = cp0; cp <= cp1; ++cp)
+                    composition_exclusion.insert(cp);
+            }
+        });
+
+    std::unordered_set<char32_t> composables;
+
+    file_name = data_path + "UnicodeData.txt";
+    parse_UnicodeData<5>(file_name,
+        [&](int cp0, int cp1, const auto& col) {
+            // https://www.unicode.org/reports/tr44/#Character_Decomposition_Mappings
+            const auto& decomposition_mapping = col[4];
+            if (decomposition_mapping.length() > 0 && decomposition_mapping[0] != '<') {
+                // Canonical decomposition mapping
+                composables.insert(cp0);
+
+                // Composition mapping
+                if (composition_exclusion.count(cp0) == 0) {
+                    std::u32string charsTo;
+                    split(decomposition_mapping.data(), decomposition_mapping.data() + decomposition_mapping.length(), ' ',
+                        [&charsTo](const char* it0, const char* it1) {
+                            const int cp = hexstr_to_int(it0, it1);
+                            charsTo.push_back(static_cast<char32_t>(cp));
+                        });
+                    if (charsTo.size() == 2) {
+                        composables.insert(charsTo[0]);
+                        composables.insert(charsTo[1]);
+                    }
+                }
+            }
+        });
+
+    std::vector<std::uint32_t> comp_disallowed;
+    std::vector<std::uint32_t> comp_disallowed_std3;
+
+    for (char32_t cp = 0; cp < arrChars.size(); ++cp) {
+        const auto chinf = arrChars[cp].value;
+        if ((chinf == CP_DISALLOWED || (chinf & CP_DISALLOWED_STD3) != 0) &&
+            (composables.count(cp) != 0 || is_hangul_composable(cp))
+            ) {
+            if (chinf == CP_DISALLOWED)
+                comp_disallowed.push_back(cp);
+            else
+                comp_disallowed_std3.push_back(cp);
+        }
+    }
+
+    fout_head << "extern const std::uint32_t comp_disallowed[" << comp_disallowed.size() << "];\n";
+    fout << "const std::uint32_t comp_disallowed[" << comp_disallowed.size() << "] = {";
+    {
+        OutputFmt outfmt(fout, 100);
+        for (auto ch : comp_disallowed) {
+            outfmt.output(ch, 16);
+        }
+    }
+    fout << "};\n\n";
+
+    fout_head << "extern const std::uint32_t comp_disallowed_std3[" << comp_disallowed_std3.size() << "];\n";
+    fout << "const std::uint32_t comp_disallowed_std3[" << comp_disallowed_std3.size() << "] = {";
+    {
+        OutputFmt outfmt(fout, 100);
+        for (auto ch : comp_disallowed_std3) {
+            outfmt.output(ch, 16);
+        }
+    }
+    fout << "};\n\n";
 }

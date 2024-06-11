@@ -9,6 +9,7 @@
 #include "idna_table.h"
 #include "iterate_utf.h"
 #include "nfc.h"
+#include <algorithm>
 #include <string>
 
 namespace upa {
@@ -39,11 +40,10 @@ inline bool has(Option option, const Option value) {
 
 // IDNA map and normalize NFC
 template <typename CharT>
-inline std::u32string map(const CharT* input, const CharT* input_end, Option options) {
+inline bool map(std::u32string& mapped, const CharT* input, const CharT* input_end, Option options, bool is_to_ascii) {
     using namespace upa::idna::util;
 
     // P1 - Map
-    std::u32string mapped;
     const uint32_t status_mask = getStatusMask(has(options, Option::UseSTD3ASCIIRules));
     for (auto it = input; it != input_end; ) {
         const uint32_t cp = getCodePoint(it, input_end);
@@ -71,7 +71,12 @@ inline std::u32string map(const CharT* input, const CharT* input_end, Option opt
         default:
             // CP_DISALLOWED
             // CP_NO_STD3_MAPPED, CP_NO_STD3_VALID if Option::UseSTD3ASCIIRules
-            // Starting with Unicode 15.1.0 - don't record an error (error = true)
+            // Starting with Unicode 15.1.0 - don't record an error
+            if (is_to_ascii && // to_ascii optimization
+                ((value & CP_DISALLOWED_STD3) == 0
+                ? !std::binary_search(std::begin(comp_disallowed), std::end(comp_disallowed), cp)
+                : !std::binary_search(std::begin(comp_disallowed_std3), std::end(comp_disallowed_std3), cp)))
+                return false;
             mapped.push_back(cp);
             break;
         }
@@ -80,7 +85,7 @@ inline std::u32string map(const CharT* input, const CharT* input_end, Option opt
     // P2 - Normalize
     normalize_nfc(mapped);
 
-    return mapped;
+    return true;
 }
 
 bool to_ascii_mapped(std::string& domain, const std::u32string& mapped, Option options);
@@ -91,13 +96,18 @@ bool to_unicode_mapped(std::u32string& domain, const std::u32string& mapped, Opt
 template <typename CharT>
 inline bool to_ascii(std::string& domain, const CharT* input, const CharT* input_end, Option options) {
     // P1 - Map and further processing
-    return detail::to_ascii_mapped(domain, detail::map(input, input_end, options), options);
+    std::u32string mapped;
+    return
+        detail::map(mapped, input, input_end, options, true) &&
+        detail::to_ascii_mapped(domain, mapped, options);
 }
 
 template <typename CharT>
 inline bool to_unicode(std::u32string& domain, const CharT* input, const CharT* input_end, Option options) {
     // P1 - Map and further processing
-    return detail::to_unicode_mapped(domain, detail::map(input, input_end, options), options);
+    std::u32string mapped;
+    detail::map(mapped, input, input_end, options, false);
+    return detail::to_unicode_mapped(domain, mapped, options);
 }
 
 /// @brief Implements the domain to ASCII algorithm
