@@ -47,9 +47,9 @@ const std::uint32_t specRange1 = 0xE0100;
 const std::uint32_t specRange2 = 0xE01EF;
 const std::uint32_t specValue = 0x20000;
 
-extern std::uint32_t blockData[];
-extern std::uint16_t blockIndex[];
-extern char32_t allCharsTo[];
+extern const std::uint32_t blockData[];
+extern const std::uint16_t blockIndex[];
+extern const char32_t allCharsTo[];
 
 extern const std::uint32_t comp_disallowed[5];
 extern const std::uint32_t comp_disallowed_std3[21];

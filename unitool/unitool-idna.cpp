@@ -364,8 +364,8 @@ void make_mapping_table(std::string data_path) {
 
     std::vector<int> blockIndex;
 
-    fout_head << "extern std::uint32_t blockData[];\n";
-    fout << "std::uint32_t blockData[] = {";
+    fout_head << "extern const std::uint32_t blockData[];\n";
+    fout << "const std::uint32_t blockData[] = {";
     {
         OutputFmt outfmt(fout, 100);
 
@@ -394,8 +394,8 @@ void make_mapping_table(std::string data_path) {
     if (index_levels == 1) {
         // Vieno lygio indeksas
         const char* sztype = getUIntType(blockIndex);
-        fout_head << "extern " << sztype << " blockIndex[];\n";
-        fout << sztype << " blockIndex[] = {";
+        fout_head << "extern const " << sztype << " blockIndex[];\n";
+        fout << "const " << sztype << " blockIndex[] = {";
         {
             OutputFmt outfmt(fout, 100);
             for (int index : blockIndex) {
@@ -409,8 +409,8 @@ void make_mapping_table(std::string data_path) {
         // Dviejų lygių indeksas
         std::vector<int> indexToIndex;
         const char* sztype = getUIntType(blockIndex);
-        fout_head << "extern " << sztype << " indexToBlock[];\n";
-        fout << sztype << " indexToBlock[] = {";
+        fout_head << "extern const " << sztype << " indexToBlock[];\n";
+        fout << "const " << sztype << " indexToBlock[] = {";
         {
             size_t count = blockIndex.size();
             std::cout << "=== Index BLOCK ===\n";
@@ -440,8 +440,8 @@ void make_mapping_table(std::string data_path) {
         }
         fout << "};\n\n";
         sztype = getUIntType(indexToIndex);
-        fout_head << "extern " << sztype << " indexToIndex[];\n";
-        fout << sztype << " indexToIndex[] = {";
+        fout_head << "extern const " << sztype << " indexToIndex[];\n";
+        fout << "const " << sztype << " indexToIndex[] = {";
         {
             OutputFmt outfmt(fout, 100);
             for (int ind : indexToIndex) {
@@ -452,8 +452,8 @@ void make_mapping_table(std::string data_path) {
     }
 
     const char* sztype = getCharType<char_to_t>();
-    fout_head << "extern " << sztype << " allCharsTo[];\n";
-    fout << sztype << " allCharsTo[] = {";
+    fout_head << "extern const " << sztype << " allCharsTo[];\n";
+    fout << "const " << sztype << " allCharsTo[] = {";
     {
         OutputFmt outfmt(fout, 100);
         for (auto ch : allCharsTo) {
