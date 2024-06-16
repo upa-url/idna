@@ -350,8 +350,7 @@ bool to_ascii_mapped(std::string& domain, const std::u32string& mapped, Option o
 }
 
 bool to_unicode_mapped(std::u32string& domain, const std::u32string& mapped, Option options) {
-    // Processing, using Nontransitional_Processing
-    return processing_mapped(&domain, mapped, options & ~Option::Transitional);
+    return processing_mapped(&domain, mapped, options);
 }
 
 
