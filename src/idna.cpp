@@ -90,7 +90,7 @@ static bool validate_label(const char32_t* label, const char32_t* label_end, Opt
 
         if (detail::has(options, Option::CheckHyphens)) {
             // V2
-            const size_t label_length = label_end - label;
+            const std::size_t label_length = label_end - label;
             if (label_length >= 4 && label[2] == '-' && label[3] == '-')
                 return false;
             // V3
@@ -99,7 +99,7 @@ static bool validate_label(const char32_t* label, const char32_t* label_end, Opt
         } else if (full_check) {
             // V4: If not CheckHyphens, the label must not begin with “xn--”
             // https://github.com/whatwg/url/issues/603#issuecomment-842625331
-            const size_t label_length = label_end - label;
+            const std::size_t label_length = label_end - label;
             if (label_length >= 4 && label[0] == 'x' && label[1] == 'n' && label[2] == '-' && label[3] == '-')
                 return false;
         }
@@ -293,7 +293,7 @@ bool to_ascii_mapped(std::string& domain, const std::u32string& mapped, Option o
     } else {
         const char32_t* first = mapped.data();
         const char32_t* last = mapped.data() + mapped.length();
-        size_t domain_len = static_cast<size_t>(-1);
+        std::size_t domain_len = static_cast<std::size_t>(-1);
         bool first_label = true;
         std::string encoded;
         split(first, last, 0x002E, [&](const char32_t* label, const char32_t* label_end) {
@@ -308,7 +308,7 @@ bool to_ascii_mapped(std::string& domain, const std::u32string& mapped, Option o
             }
 
             // A3 - to Punycode
-            const size_t label_start_ind = encoded.length();
+            const std::size_t label_start_ind = encoded.length();
             if (std::any_of(label, label_end, [](char32_t ch) { return ch >= 0x80; })) {
                 // has non-ASCII
                 std::string alabel;
@@ -328,7 +328,7 @@ bool to_ascii_mapped(std::string& domain, const std::u32string& mapped, Option o
 
             // A4 - DNS length restrictions
             if (detail::has(options, Option::VerifyDnsLength) && !is_root) {
-                const size_t label_length = encoded.length() - label_start_ind;
+                const std::size_t label_length = encoded.length() - label_start_ind;
                 // A4_2
                 if (label_length < 1 || label_length > 63)
                     ok = false;

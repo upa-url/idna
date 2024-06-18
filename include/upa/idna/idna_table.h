@@ -12,31 +12,31 @@ namespace upa {
 namespace idna {
 namespace util {
 
-const uint32_t CP_DISALLOWED = 0;
-const uint32_t CP_VALID = 0x0001 << 16;
-const uint32_t CP_MAPPED = 0x0002 << 16;
-const uint32_t CP_DEVIATION = CP_VALID | CP_MAPPED; // 0x0003 << 16
-const uint32_t CP_DISALLOWED_STD3 = 0x0004 << 16;
-const uint32_t CP_NO_STD3_VALID = CP_VALID | CP_DISALLOWED_STD3;
-const uint32_t CP_NO_STD3_MAPPED = CP_MAPPED | CP_DISALLOWED_STD3;
-const uint32_t MAP_TO_ONE = 0x0008 << 16;
+const std::uint32_t CP_DISALLOWED = 0;
+const std::uint32_t CP_VALID = 0x0001 << 16;
+const std::uint32_t CP_MAPPED = 0x0002 << 16;
+const std::uint32_t CP_DEVIATION = CP_VALID | CP_MAPPED; // 0x0003 << 16
+const std::uint32_t CP_DISALLOWED_STD3 = 0x0004 << 16;
+const std::uint32_t CP_NO_STD3_VALID = CP_VALID | CP_DISALLOWED_STD3;
+const std::uint32_t CP_NO_STD3_MAPPED = CP_MAPPED | CP_DISALLOWED_STD3;
+const std::uint32_t MAP_TO_ONE = 0x0008 << 16;
 // General_Category=Mark
-const uint32_t CAT_MARK = 0x0010 << 16;
+const std::uint32_t CAT_MARK = 0x0010 << 16;
 // ContextJ
-const uint32_t CAT_Virama   = 0x0020 << 16;
+const std::uint32_t CAT_Virama   = 0x0020 << 16;
 //todo: as values >1
-const uint32_t CAT_Joiner_D = 0x0040 << 16;
-const uint32_t CAT_Joiner_L = 0x0080 << 16;
-const uint32_t CAT_Joiner_R = 0x0100 << 16;
-const uint32_t CAT_Joiner_T = 0x0200 << 16;
+const std::uint32_t CAT_Joiner_D = 0x0040 << 16;
+const std::uint32_t CAT_Joiner_L = 0x0080 << 16;
+const std::uint32_t CAT_Joiner_R = 0x0100 << 16;
+const std::uint32_t CAT_Joiner_T = 0x0200 << 16;
 // Bidi
 //todo: as values >1
-const uint32_t CAT_Bidi_L    = 0x0400 << 16;
-const uint32_t CAT_Bidi_R_AL = 0x0800 << 16;
-const uint32_t CAT_Bidi_AN   = 0x1000 << 16;
-const uint32_t CAT_Bidi_EN   = 0x2000 << 16;
-const uint32_t CAT_Bidi_ES_CS_ET_ON_BN = 0x4000 << 16;
-const uint32_t CAT_Bidi_NSM  = 0x8000 << 16;
+const std::uint32_t CAT_Bidi_L    = 0x0400 << 16;
+const std::uint32_t CAT_Bidi_R_AL = 0x0800 << 16;
+const std::uint32_t CAT_Bidi_AN   = 0x1000 << 16;
+const std::uint32_t CAT_Bidi_EN   = 0x2000 << 16;
+const std::uint32_t CAT_Bidi_ES_CS_ET_ON_BN = 0x4000 << 16;
+const std::uint32_t CAT_Bidi_NSM  = 0x8000 << 16;
 
 // BEGIN-GENERATED
 const std::size_t blockShift = 4;
@@ -56,17 +56,17 @@ extern const std::uint32_t comp_disallowed_std3[21];
 // END-GENERATED
 
 
-inline uint32_t getStatusMask(bool useSTD3ASCIIRules) {
+inline std::uint32_t getStatusMask(bool useSTD3ASCIIRules) {
     return useSTD3ASCIIRules ? (0x0007 << 16) : (0x0003 << 16);
 }
 
-inline uint32_t getValidMask(bool useSTD3ASCIIRules, bool transitional) {
-    const uint32_t status_mask = getStatusMask(useSTD3ASCIIRules);
+inline std::uint32_t getValidMask(bool useSTD3ASCIIRules, bool transitional) {
+    const std::uint32_t status_mask = getStatusMask(useSTD3ASCIIRules);
     // (CP_DEVIATION = CP_VALID | CP_MAPPED) & ~CP_MAPPED ==> CP_VALID
     return transitional ? status_mask : (status_mask & ~CP_MAPPED);
 }
 
-inline uint32_t getCharInfo(uint32_t cp) {
+inline std::uint32_t getCharInfo(uint32_t cp) {
     if (cp >= defaultStart) {
         if (cp >= specRange1 && cp <= specRange2) {
             return specValue;
@@ -77,14 +77,14 @@ inline uint32_t getCharInfo(uint32_t cp) {
 }
 
 template <class StrT>
-inline size_t apply_mapping(uint32_t val, StrT& output) {
+inline std::size_t apply_mapping(uint32_t val, StrT& output) {
     if (val & MAP_TO_ONE) {
         output.push_back(val & 0xFFFF);
         return 1;
     }
     if (val & 0xFFFF) {
-        size_t len = (val & 0xFFFF) >> 13;
-        size_t ind = val & 0x1FFF;
+        std::size_t len = (val & 0xFFFF) >> 13;
+        std::size_t ind = val & 0x1FFF;
         if (len == 7) {
             len += ind >> 8;
             ind &= 0xFF;
