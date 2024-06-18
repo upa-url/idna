@@ -96,7 +96,7 @@ static bool validate_label(const char32_t* label, const char32_t* label_end, Opt
             // V3
             if (label[0] == '-' || *(label_end - 1) == '-')
                 return false;
-        } else {
+        } else if (full_check) {
             // V4: If not CheckHyphens, the label must not begin with “xn--”
             // https://github.com/whatwg/url/issues/603#issuecomment-842625331
             const size_t label_length = label_end - label;
