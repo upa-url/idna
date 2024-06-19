@@ -97,6 +97,7 @@ template <typename CharT>
 inline bool to_ascii(std::string& domain, const CharT* input, const CharT* input_end, Option options) {
     // P1 - Map and further processing
     std::u32string mapped;
+    domain.clear();
     return
         detail::map(mapped, input, input_end, options, true) &&
         detail::to_ascii_mapped(domain, mapped, options);

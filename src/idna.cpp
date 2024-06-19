@@ -284,6 +284,7 @@ namespace detail {
 bool to_ascii_mapped(std::string& domain, const std::u32string& mapped, Option options) {
     // A1
     bool ok = processing_mapped(nullptr, mapped, options);
+    if (!ok) return ok;
 
     // A2 - Break the result into labels at U+002E FULL STOP
     if (mapped.length() == 0) {
@@ -293,9 +294,8 @@ bool to_ascii_mapped(std::string& domain, const std::u32string& mapped, Option o
     } else {
         const char32_t* first = mapped.data();
         const char32_t* last = mapped.data() + mapped.length();
-        std::size_t domain_len = static_cast<std::size_t>(-1);
+        std::size_t domain_len = domain.length() + static_cast<std::size_t>(-1);
         bool first_label = true;
-        std::string encoded;
         split(first, last, 0x002E, [&](const char32_t* label, const char32_t* label_end) {
             // root is ending empty label
             const bool is_root = (label == last);
@@ -304,31 +304,31 @@ bool to_ascii_mapped(std::string& domain, const std::u32string& mapped, Option o
             if (first_label) {
                 first_label = false;
             } else {
-                encoded.push_back('.');
+                domain.push_back('.');
             }
 
             // A3 - to Punycode
-            const std::size_t label_start_ind = encoded.length();
+            const std::size_t label_start_ind = domain.length();
             if (std::any_of(label, label_end, [](char32_t ch) { return ch >= 0x80; })) {
                 // has non-ASCII
                 std::string alabel;
                 if (punycode::encode(alabel, label, label_end) == punycode::status::success) {
-                    encoded.push_back('x');
-                    encoded.push_back('n');
-                    encoded.push_back('-');
-                    encoded.push_back('-');
-                    encoded.append(alabel);
+                    domain.push_back('x');
+                    domain.push_back('n');
+                    domain.push_back('-');
+                    domain.push_back('-');
+                    domain.append(alabel);
                 } else {
-                    encoded.append(label, label_end);
+                    domain.append(label, label_end);
                     ok = false; // punycode error
                 }
             } else {
-                encoded.append(label, label_end);
+                domain.append(label, label_end);
             }
 
             // A4 - DNS length restrictions
             if (detail::has(options, Option::VerifyDnsLength) && !is_root) {
-                const std::size_t label_length = encoded.length() - label_start_ind;
+                const std::size_t label_length = domain.length() - label_start_ind;
                 // A4_2
                 if (label_length < 1 || label_length > 63)
                     ok = false;
@@ -342,8 +342,6 @@ bool to_ascii_mapped(std::string& domain, const std::u32string& mapped, Option o
         // A4_1
         if (detail::has(options, Option::VerifyDnsLength) && domain_len == 0)
             ok = false;
-
-        domain = std::move(encoded);
     }
 
     return ok;
