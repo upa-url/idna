@@ -12,6 +12,12 @@ namespace upa {
 namespace idna {
 namespace util {
 
+// ASCII
+const std::uint8_t AC_VALID = 0x01;
+const std::uint8_t AC_MAPPED = 0x02;
+const std::uint8_t AC_DISALLOWED_STD3 = 0x04;
+
+// Unicode
 const std::uint32_t CP_DISALLOWED = 0;
 const std::uint32_t CP_VALID = 0x0001 << 16;
 const std::uint32_t CP_MAPPED = 0x0002 << 16;
@@ -53,6 +59,8 @@ extern const char32_t allCharsTo[];
 
 extern const std::uint32_t comp_disallowed[5];
 extern const std::uint32_t comp_disallowed_std3[21];
+
+extern const std::uint8_t asciiData[128];
 // END-GENERATED
 
 

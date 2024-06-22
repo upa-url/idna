@@ -35,22 +35,23 @@ namespace {
 
 namespace idna_lib {
 
-    bool toASCII(std::string& output, const std::string& input, bool transitional) {
+    bool toASCII(std::string& output, const std::string& input, bool transitional, bool is_input_ascii) {
         const bool res = upa::idna::to_ascii(output, input.data(), input.data() + input.length(),
             upa::idna::Option::VerifyDnsLength |
             upa::idna::Option::CheckHyphens |
             upa::idna::Option::CheckBidi |
             upa::idna::Option::CheckJoiners |
             upa::idna::Option::UseSTD3ASCIIRules |
-            (transitional ? upa::idna::Option::Transitional : upa::idna::Option::Default)
-            );
+            (transitional ? upa::idna::Option::Transitional : upa::idna::Option::Default) |
+            (is_input_ascii ? upa::idna::Option::InputASCII : upa::idna::Option::Default)
+        );
 
         if (!res) output.clear();
 
         return res;
     }
 
-    bool toUnicode(std::string& output, const std::string& input) {
+    bool toUnicode(std::string& output, const std::string& input, bool is_input_ascii) {
         std::u32string domain;
 
         bool res = upa::idna::to_unicode(domain, input.data(), input.data() + input.length(),
@@ -58,8 +59,9 @@ namespace idna_lib {
             upa::idna::Option::CheckHyphens |
             upa::idna::Option::CheckBidi |
             upa::idna::Option::CheckJoiners |
-            upa::idna::Option::UseSTD3ASCIIRules
-            );
+            upa::idna::Option::UseSTD3ASCIIRules |
+            (is_input_ascii ? upa::idna::Option::InputASCII : upa::idna::Option::Default)
+        );
 
 #if 0
         // IdnaTest.txt (10.0.0) still have incorrect tests for toUnicode with error code [A4_2]

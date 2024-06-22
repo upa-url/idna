@@ -465,6 +465,18 @@ void make_mapping_table(std::string data_path) {
     // Make table of IDNA disallowed code points that can be changed by NFC
     fout_head << '\n';
     make_comp_disallowed_tables(data_path, arrChars, fout_head, fout);
+
+    // ASCII data
+    fout_head << '\n';
+    fout_head << "extern const std::uint8_t asciiData[128];\n";
+    fout << "const std::uint8_t asciiData[128] = {";
+    {
+        OutputFmt outfmt(fout, 100);
+        for (std::uint8_t ch = 0; ch < 128; ++ch) {
+            outfmt.output((arrChars[ch].value >> 16) & 0x07, 16);
+        }
+    }
+    fout << "};\n\n";
 }
 
 // Make table of IDNA disallowed code points that can be changed by NFC

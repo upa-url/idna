@@ -23,6 +23,8 @@ enum class Option {
     CheckHyphens      = 0x0008,
     CheckBidi         = 0x0010,
     CheckJoiners      = 0x0020,
+    // ASCII optimization
+    InputASCII        = 0x1000,
 };
 
 // enable bit mask on idna::Option
@@ -38,52 +40,95 @@ inline bool has(Option option, const Option value) {
     return (option & value) == value;
 }
 
+inline Option domain_options(bool be_strict, bool is_input_ascii) {
+    // https://url.spec.whatwg.org/#concept-domain-to-ascii
+    // https://url.spec.whatwg.org/#concept-domain-to-unicode
+    // Note. The to_unicode ignores Option::VerifyDnsLength
+    auto options = be_strict
+        ? Option::CheckBidi | Option::CheckJoiners | Option::UseSTD3ASCIIRules | Option::VerifyDnsLength
+        : Option::CheckBidi | Option::CheckJoiners;
+    if (is_input_ascii)
+        options |= Option::InputASCII;
+    return options;
+}
+
+template <typename CharT>
+constexpr char ascii_to_lower_char(CharT c) noexcept {
+    return static_cast<char>((c <= 'Z' && c >= 'A') ? (c | 0x20) : c);
+}
+
 // IDNA map and normalize NFC
 template <typename CharT>
 inline bool map(std::u32string& mapped, const CharT* input, const CharT* input_end, Option options, bool is_to_ascii) {
     using namespace upa::idna::util;
 
     // P1 - Map
-    const uint32_t status_mask = getStatusMask(has(options, Option::UseSTD3ASCIIRules));
-    for (auto it = input; it != input_end; ) {
-        const uint32_t cp = getCodePoint(it, input_end);
-        const uint32_t value = getCharInfo(cp);
-
-        switch (value & status_mask) {
-        case CP_VALID:
-            mapped.push_back(cp);
-            break;
-        case CP_MAPPED:
-            if (has(options, Option::Transitional) && cp == 0x1E9E) {
-                // replace U+1E9E capital sharp s by “ss”
-                mapped.append(U"ss", 2);
-            } else {
-                apply_mapping(value, mapped);
+    if (has(options, Option::InputASCII)) {
+        // The input is in ASCII and can contain `xn--` labels
+        mapped.reserve(input_end - input);
+        if (has(options, Option::UseSTD3ASCIIRules)) {
+            for (const auto* it = input; it != input_end; ++it) {
+                const auto cp = *it;
+                switch (asciiData[cp]) {
+                case AC_VALID:
+                    mapped.push_back(cp);
+                    break;
+                case AC_MAPPED:
+                    mapped.push_back(cp | 0x20);
+                    break;
+                default:
+                    // AC_DISALLOWED_STD3
+                    if (is_to_ascii)
+                        return false;
+                    mapped.push_back(cp);
+                }
             }
-            break;
-        case CP_DEVIATION:
-            if (has(options, Option::Transitional)) {
-                apply_mapping(value, mapped);
-            } else {
-                mapped.push_back(cp);
-            }
-            break;
-        default:
-            // CP_DISALLOWED
-            // CP_NO_STD3_MAPPED, CP_NO_STD3_VALID if Option::UseSTD3ASCIIRules
-            // Starting with Unicode 15.1.0 - don't record an error
-            if (is_to_ascii && // to_ascii optimization
-                ((value & CP_DISALLOWED_STD3) == 0
-                ? !std::binary_search(std::begin(comp_disallowed), std::end(comp_disallowed), cp)
-                : !std::binary_search(std::begin(comp_disallowed_std3), std::end(comp_disallowed_std3), cp)))
-                return false;
-            mapped.push_back(cp);
-            break;
+        } else {
+            for (const auto* it = input; it != input_end; ++it)
+                mapped.push_back(ascii_to_lower_char(*it));
         }
-    }
+    } else {
+        const uint32_t status_mask = getStatusMask(has(options, Option::UseSTD3ASCIIRules));
+        for (auto it = input; it != input_end; ) {
+            const uint32_t cp = getCodePoint(it, input_end);
+            const uint32_t value = getCharInfo(cp);
 
-    // P2 - Normalize
-    normalize_nfc(mapped);
+            switch (value & status_mask) {
+            case CP_VALID:
+                mapped.push_back(cp);
+                break;
+            case CP_MAPPED:
+                if (has(options, Option::Transitional) && cp == 0x1E9E) {
+                    // replace U+1E9E capital sharp s by “ss”
+                    mapped.append(U"ss", 2);
+                } else {
+                    apply_mapping(value, mapped);
+                }
+                break;
+            case CP_DEVIATION:
+                if (has(options, Option::Transitional)) {
+                    apply_mapping(value, mapped);
+                } else {
+                    mapped.push_back(cp);
+                }
+                break;
+            default:
+                // CP_DISALLOWED
+                // CP_NO_STD3_MAPPED, CP_NO_STD3_VALID if Option::UseSTD3ASCIIRules
+                // Starting with Unicode 15.1.0 - don't record an error
+                if (is_to_ascii && // to_ascii optimization
+                    ((value & CP_DISALLOWED_STD3) == 0
+                    ? !std::binary_search(std::begin(comp_disallowed), std::end(comp_disallowed), cp)
+                    : !std::binary_search(std::begin(comp_disallowed_std3), std::end(comp_disallowed_std3), cp)))
+                    return false;
+                mapped.push_back(cp);
+                break;
+            }
+        }
+
+        // P2 - Normalize
+        normalize_nfc(mapped);
+    }
 
     return true;
 }
@@ -119,17 +164,18 @@ inline bool to_unicode(std::u32string& domain, const CharT* input, const CharT* 
 /// @param[in]  domain input domain string
 /// @param[in]  domain_end the end of input domain string
 /// @param[in]  be_strict
+/// @param[in]  is_input_ascii
 /// @return `true` on success, or `false` on failure
 template <typename CharT>
-inline bool domain_to_ascii(std::string& output, const CharT* domain, const CharT* domain_end, bool be_strict = false) {
-    const bool res = to_ascii(output, domain, domain_end, be_strict
-        ? Option::CheckBidi | Option::CheckJoiners | Option::UseSTD3ASCIIRules | Option::VerifyDnsLength
-        : Option::CheckBidi | Option::CheckJoiners);
+inline bool domain_to_ascii(std::string& output, const CharT* domain, const CharT* domain_end,
+    bool be_strict = false, bool is_input_ascii = false)
+{
+    const bool res = to_ascii(output, domain, domain_end, detail::domain_options(be_strict, is_input_ascii));
+
     // 3. If result is the empty string, domain-to-ASCII validation error, return failure.
     //
-    // Note. Result of to_ascii can be the empty string if input:
-    // 1) consists entirely of IDNA ignored code points;
-    // 2) is "xn--".
+    // Note. Result of to_ascii can be the empty string if input consists entirely of
+    // IDNA ignored code points.
     return res && !output.empty();
 }
 
@@ -141,12 +187,13 @@ inline bool domain_to_ascii(std::string& output, const CharT* domain, const Char
 /// @param[in]  domain input domain string
 /// @param[in]  domain_end the end of input domain string
 /// @param[in]  be_strict
+/// @param[in]  is_input_ascii
 /// @return `true` on success, or `false` on errors
 template <typename CharT>
-inline bool domain_to_unicode(std::u32string& output, const CharT* domain, const CharT* domain_end, bool be_strict = false) {
-    return to_unicode(output, domain, domain_end, be_strict
-        ? Option::CheckBidi | Option::CheckJoiners | Option::UseSTD3ASCIIRules
-        : Option::CheckBidi | Option::CheckJoiners);
+inline bool domain_to_unicode(std::u32string& output, const CharT* domain, const CharT* domain_end,
+    bool be_strict = false, bool is_input_ascii = false)
+{
+    return to_unicode(output, domain, domain_end, detail::domain_options(be_strict, is_input_ascii));
 }
 
 /// @brief Encodes Unicode version

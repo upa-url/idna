@@ -80,6 +80,8 @@ int run_idna_tests_v2(const char* file_name)
 
                 // source
                 const std::string& source(c1);
+                const bool is_input_ascii = std::all_of(source.begin(), source.end(),
+                    [](char c) { return static_cast<unsigned char>(c) < 0x80; });
 
                 // to_unicode
                 const std::string& exp_unicode(c2.empty() ? source : c2);
@@ -103,19 +105,34 @@ int run_idna_tests_v2(const char* file_name)
                     ok = idna_lib::toUnicode(output, source);
                     tc.assert_equal(exp_unicode_ok, ok, "to_unicode success");
                     tc.assert_equal(exp_unicode, output, "to_unicode output");
+                    if (is_input_ascii) {
+                        ok = idna_lib::toUnicode(output, source, is_input_ascii);
+                        tc.assert_equal(exp_unicode_ok, ok, "ASCII to_unicode success");
+                        tc.assert_equal(exp_unicode, output, "ASCII to_unicode output");
+                    }
 
                     // to_ascii
                     ok = idna_lib::toASCII(output, source, false);
                     tc.assert_equal(exp_ascii_ok, ok, "to_ascii success");
-                    if (exp_ascii_ok && ok) {
+                    if (exp_ascii_ok && ok)
                         tc.assert_equal(exp_ascii, output, "to_ascii output");
+                    if (is_input_ascii) {
+                        ok = idna_lib::toASCII(output, source, false, is_input_ascii);
+                        tc.assert_equal(exp_ascii_ok, ok, "ASCII to_ascii success");
+                        if (exp_ascii_ok && ok)
+                            tc.assert_equal(exp_ascii, output, "ASCII to_ascii output");
                     }
 
                     // to_ascii transitional
                     ok = idna_lib::toASCII(output, source, true);
                     tc.assert_equal(exp_ascii_trans_ok, ok, "to_ascii transitional success");
-                    if (exp_ascii_trans_ok && ok) {
+                    if (exp_ascii_trans_ok && ok)
                         tc.assert_equal(exp_ascii_trans, output, "to_ascii transitional output");
+                    if (is_input_ascii) {
+                        ok = idna_lib::toASCII(output, source, true, is_input_ascii);
+                        tc.assert_equal(exp_ascii_trans_ok, ok, "ASCII to_ascii transitional success");
+                        if (exp_ascii_trans_ok && ok)
+                            tc.assert_equal(exp_ascii_trans, output, "ASCII to_ascii transitional output");
                     }
                 });
             }

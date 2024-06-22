@@ -8,8 +8,8 @@
 #include <string>
 
 namespace idna_lib {
-    bool toASCII(std::string& output, const std::string& input, bool transitional);
-    bool toUnicode(std::string& output, const std::string& input);
+    bool toASCII(std::string& output, const std::string& input, bool transitional, bool is_input_ascii = false);
+    bool toUnicode(std::string& output, const std::string& input, bool is_input_ascii = false);
 } // namespace idna_lib
 
 #endif // IDNA_LIB_H
