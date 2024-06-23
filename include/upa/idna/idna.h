@@ -27,12 +27,17 @@ enum class Option {
     InputASCII        = 0x1000,
 };
 
-// enable bit mask on idna::Option
+} // namespace idna
+} // namespace upa
+
+// enable bit mask operators on upa::idna::Option
 template<>
-struct enable_bitmask_operators<Option> {
+struct enable_bitmask_operators<upa::idna::Option> {
     static const bool enable = true;
 };
 
+namespace upa {
+namespace idna {
 namespace detail {
 
 // Bit flags
