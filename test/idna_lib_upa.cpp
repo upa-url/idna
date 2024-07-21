@@ -2,35 +2,28 @@
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
+#include "convert_utf.h"
 #include "idna_lib.h"
-
-// conversion
-#include <algorithm>
-#include <codecvt>
-#include <locale>    // std::wstring_convert
 
 // IDNA (UTS46)
 #include "upa/idna.h"
 
+// conversion
+#include <algorithm>
+#include <iterator>
+
+
 namespace {
-#if defined(_MSC_VER) && _MSC_VER >= 1900 && _MSC_VER < 1920
-    // for VS 2015 and VS 2017 
-    // https://stackoverflow.com/q/32055357
-    static std::wstring_convert<std::codecvt_utf8<uint32_t>, uint32_t> conv32;
 
-    inline std::string utf32_to_bytes(const std::u32string& input) {
-        return conv32.to_bytes(
-            reinterpret_cast<const uint32_t*>(input.data()),
-            reinterpret_cast<const uint32_t*>(input.data() + input.length()));
+    inline std::string utf8_from_utf32(const std::u32string& input) {
+        std::string str_utf8;
+        auto iter = std::back_inserter(str_utf8);
+        for (auto cp : input)
+            append_utf8(iter, cp);
+        return str_utf8;
     }
-#else
-    static std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> conv32;
 
-    inline std::string utf32_to_bytes(const std::u32string& input) {
-        return conv32.to_bytes(input);
-    }
-#endif
-}
+} // namespace
 
 
 namespace idna_lib {
@@ -88,7 +81,7 @@ namespace idna_lib {
 #endif
 
         // to utf-8
-        output = utf32_to_bytes(domain);
+        output = utf8_from_utf32(domain);
 
         return res;
     }
