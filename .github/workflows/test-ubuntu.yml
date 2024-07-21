@@ -1,0 +1,57 @@
+name: Ubuntu
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore: [ '**.md' ]
+  pull_request:
+    paths-ignore: [ '**.md' ]
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - name: clang++ C++11
+            cxx_compiler: clang++
+            cxx_standard: 11
+            cmake_options: ""
+
+          - name: clang++ C++17
+            cxx_compiler: clang++
+            cxx_standard: 17
+            cmake_options: ""
+
+          - name: g++ C++11
+            cxx_compiler: g++
+            cxx_standard: 11
+            cmake_options: ""
+
+          - name: g++ C++17
+            cxx_compiler: g++
+            cxx_standard: 17
+            cmake_options: ""
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: apt-get install
+      if: ${{ matrix.install }}
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ${{ matrix.install }}
+    - name: get test data
+      run: test/download-tests.sh
+    - name: before cmake
+      if: ${{ matrix.before_cmake }}
+      run: ${{ matrix.before_cmake }}
+    - name: cmake
+      run: cmake -S . -B build -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} ${{ matrix.cmake_options }}
+    - name: build
+      run: cmake --build build --config Release
+    - name: test
+      run: cd build ; ctest -C Release -V
+    - name: after test
+      if: ${{ matrix.after_test }}
+      run: ${{ matrix.after_test }}
