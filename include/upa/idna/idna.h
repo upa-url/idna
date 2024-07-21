@@ -11,6 +11,7 @@
 #include "nfc.h"
 #include <algorithm>
 #include <string>
+#include <type_traits> // std::make_unsigned
 
 namespace upa {
 namespace idna {
@@ -65,6 +66,7 @@ constexpr char ascii_to_lower_char(CharT c) noexcept {
 // IDNA map and normalize NFC
 template <typename CharT>
 inline bool map(std::u32string& mapped, const CharT* input, const CharT* input_end, Option options, bool is_to_ascii) {
+    using UCharT = typename std::make_unsigned<CharT>::type;
     using namespace upa::idna::util;
 
     // P1 - Map
@@ -73,7 +75,7 @@ inline bool map(std::u32string& mapped, const CharT* input, const CharT* input_e
         mapped.reserve(input_end - input);
         if (has(options, Option::UseSTD3ASCIIRules)) {
             for (const auto* it = input; it != input_end; ++it) {
-                const auto cp = *it;
+                const auto cp = static_cast<UCharT>(*it);
                 switch (asciiData[cp]) {
                 case AC_VALID:
                     mapped.push_back(cp);

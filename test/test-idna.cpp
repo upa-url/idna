@@ -25,7 +25,7 @@ inline std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, T
 int run_idna_tests_v2(const char* file_name);
 int run_punycode_tests(const char* file_name);
 static std::string get_column8(const std::string& line, std::size_t& pos);
-static std::u16string get_column16(const std::string& line, std::size_t& pos);
+//static std::u16string get_column16(const std::string& line, std::size_t& pos);
 static std::u32string get_column32(const std::string& line, std::size_t& pos);
 static bool is_error(const std::string& col);
 static bool is_error_of_to_unicode(const std::string& col);
@@ -273,9 +273,9 @@ static std::string get_column8(const std::string& line, std::size_t& pos) {
     return get_column<char>(line, pos);
 }
 
-static std::u16string get_column16(const std::string& line, std::size_t& pos) {
-    return get_column<char16_t>(line, pos);
-}
+//static std::u16string get_column16(const std::string& line, std::size_t& pos) {
+//    return get_column<char16_t>(line, pos);
+//}
 
 static std::u32string get_column32(const std::string& line, std::size_t& pos) {
     return get_column<char32_t>(line, pos);
@@ -367,16 +367,18 @@ int run_punycode_tests(const char* file_name)
                 // test
                 if (case_name.empty()) case_name = line;
                 ddt.test_case(case_name.c_str(), [&](DataDrivenTest::TestCase& tc) {
-                    bool ok;
+                    bool ok{};
 
                     // encode to punycode
                     std::string out_encoded; // punycode::encode(..) appends
                     ok = upa::idna::punycode::encode(out_encoded, inp_source.data(), inp_source.data() + inp_source.length()) == upa::idna::punycode::status::success;
+                    tc.assert_equal(true, ok, "punycode::encode success");
                     tc.assert_equal(inp_encoded8, out_encoded, "punycode::encode");
 
                     // decode from punycode
                     std::u32string out_decoded; // punycode::decode(..) appends
                     ok = upa::idna::punycode::decode(out_decoded, inp_encoded.data(), inp_encoded.data() + inp_encoded.length()) == upa::idna::punycode::status::success;
+                    tc.assert_equal(true, ok, "punycode::decode success");
                     tc.assert_equal(inp_source, out_decoded, "punycode::decode");
                 });
             }
