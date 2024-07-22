@@ -8,6 +8,8 @@
 #include "upa/idna/punycode.h"
 
 #include <algorithm>
+#include <iterator>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -280,6 +282,25 @@ static bool validate_bidi(const char32_t* label, const char32_t* label_end, int&
 }
 
 namespace detail {
+namespace {
+
+template <class InputIt>
+inline void str_append(std::string& dest, InputIt first, InputIt last) {
+#ifdef _MSC_VER
+    const std::size_t input_size = std::distance(first, last);
+    if (dest.max_size() - dest.size() < input_size)
+        throw std::length_error("too big size");
+    // now it is safe to add sizes
+    dest.reserve(dest.size() + input_size);
+    for (auto it = first; it != last; ++it)
+        dest.push_back(static_cast<char>(*it));
+#else
+    dest.append(first, last);
+#endif
+}
+
+} // namespace
+
 
 bool to_ascii_mapped(std::string& domain, const std::u32string& mapped, Option options) {
     // A1
@@ -323,7 +344,7 @@ bool to_ascii_mapped(std::string& domain, const std::u32string& mapped, Option o
                     ok = false; // punycode error
                 }
             } else {
-                domain.append(label, label_end);
+                str_append(domain, label, label_end);
             }
 
             // A4 - DNS length restrictions
