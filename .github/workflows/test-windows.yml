@@ -60,5 +60,4 @@ jobs:
     - name: build
       run: cmake --build build --config Release
     - name: test
-      working-directory: build
-      run: ctest -C Release -V
+      run: ctest --test-dir build -C Release -V
