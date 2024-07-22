@@ -319,7 +319,7 @@ bool to_ascii_mapped(std::string& domain, const std::u32string& mapped, Option o
                     domain.push_back('-');
                     domain.append(alabel);
                 } else {
-                    domain.append(label, label_end);
+                    // ignore label if it cannot be punycode encoded and record an error
                     ok = false; // punycode error
                 }
             } else {
