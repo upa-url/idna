@@ -145,6 +145,16 @@ bool to_unicode_mapped(std::u32string& domain, const std::u32string& mapped, Opt
 
 } // namespace detail
 
+
+/// @brief Implements the Unicode IDNA ToASCII
+///
+/// See: https://www.unicode.org/reports/tr46/#ToASCII
+/// 
+/// @param[out] domain buffer to store result string
+/// @param[in]  input source domain string
+/// @param[in]  input_end the end of source domain string
+/// @param[in]  options
+/// @return `true` on success, or `false` on failure
 template <typename CharT>
 inline bool to_ascii(std::string& domain, const CharT* input, const CharT* input_end, Option options) {
     // P1 - Map and further processing
@@ -155,6 +165,15 @@ inline bool to_ascii(std::string& domain, const CharT* input, const CharT* input
         detail::to_ascii_mapped(domain, mapped, options);
 }
 
+/// @brief Implements the Unicode IDNA ToUnicode
+///
+/// See: https://www.unicode.org/reports/tr46/#ToUnicode
+/// 
+/// @param[out] domain buffer to store result string
+/// @param[in]  input source domain string
+/// @param[in]  input_end the end of source domain string
+/// @param[in]  options
+/// @return `true` on success, or `false` on errors
 template <typename CharT>
 inline bool to_unicode(std::u32string& domain, const CharT* input, const CharT* input_end, Option options) {
     // P1 - Map and further processing
@@ -167,40 +186,40 @@ inline bool to_unicode(std::u32string& domain, const CharT* input, const CharT* 
 ///
 /// See: https://url.spec.whatwg.org/#concept-domain-to-ascii
 ///
-/// @param[out] output buffer to store result string
-/// @param[in]  domain input domain string
-/// @param[in]  domain_end the end of input domain string
+/// @param[out] domain buffer to store result string
+/// @param[in]  input source domain string
+/// @param[in]  input_end the end of source domain string
 /// @param[in]  be_strict
 /// @param[in]  is_input_ascii
 /// @return `true` on success, or `false` on failure
 template <typename CharT>
-inline bool domain_to_ascii(std::string& output, const CharT* domain, const CharT* domain_end,
+inline bool domain_to_ascii(std::string& domain, const CharT* input, const CharT* input_end,
     bool be_strict = false, bool is_input_ascii = false)
 {
-    const bool res = to_ascii(output, domain, domain_end, detail::domain_options(be_strict, is_input_ascii));
+    const bool res = to_ascii(domain, input, input_end, detail::domain_options(be_strict, is_input_ascii));
 
     // 3. If result is the empty string, domain-to-ASCII validation error, return failure.
     //
     // Note. Result of to_ascii can be the empty string if input consists entirely of
     // IDNA ignored code points.
-    return res && !output.empty();
+    return res && !domain.empty();
 }
 
 /// @brief Implements the domain to Unicode algorithm
 ///
 /// See: https://url.spec.whatwg.org/#concept-domain-to-unicode
 ///
-/// @param[out] output buffer to store result string
-/// @param[in]  domain input domain string
-/// @param[in]  domain_end the end of input domain string
+/// @param[out] domain buffer to store result string
+/// @param[in]  input source domain string
+/// @param[in]  input_end the end of source domain string
 /// @param[in]  be_strict
 /// @param[in]  is_input_ascii
 /// @return `true` on success, or `false` on errors
 template <typename CharT>
-inline bool domain_to_unicode(std::u32string& output, const CharT* domain, const CharT* domain_end,
+inline bool domain_to_unicode(std::u32string& domain, const CharT* input, const CharT* input_end,
     bool be_strict = false, bool is_input_ascii = false)
 {
-    return to_unicode(output, domain, domain_end, detail::domain_options(be_strict, is_input_ascii));
+    return to_unicode(domain, input, input_end, detail::domain_options(be_strict, is_input_ascii));
 }
 
 /// @brief Encodes Unicode version
