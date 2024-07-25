@@ -61,8 +61,12 @@ static bool processing_mapped(std::u32string* pdecoded, const std::u32string& ma
                 // More info: https://github.com/whatwg/url/issues/760#issuecomment-1462706617
                 error = true;
                 // Decode "xn--ascii-" to "ascii" for to_unicode:
-                if (pdecoded && label_end - label > 5)
-                    pdecoded->append(label + 4, label_end - 1);
+                if (pdecoded && label_end - label > 5) {
+                    if (std::all_of(label + 4, label_end - 1, [](char32_t ch) { return ch < 0x80; }))
+                        pdecoded->append(label + 4, label_end - 1);
+                    else
+                        pdecoded->append(label, label_end); // contains non-ASCII - leave original label
+                }
             } else {
                 std::u32string ulabel;
                 if (punycode::decode(ulabel, label + 4, label_end) == punycode::status::success) {
