@@ -8,7 +8,7 @@
 #include <iterator>
 
 
-namespace upa {
+namespace upa { // NOLINT(modernize-concat-nested-namespaces)
 namespace idna {
 
 namespace hangul {
@@ -21,7 +21,7 @@ namespace hangul {
     constexpr char32_t TCount = 28;
     constexpr char32_t NCount = VCount * TCount; // 588
     constexpr char32_t SCount = LCount * NCount; // 11172
-}
+} // namespace hangul
 
 void compose(std::u32string& str)
 {

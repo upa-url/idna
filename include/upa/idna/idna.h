@@ -13,7 +13,7 @@
 #include <string>
 #include <type_traits> // std::make_unsigned
 
-namespace upa {
+namespace upa { // NOLINT(modernize-concat-nested-namespaces)
 namespace idna {
 
 enum class Option {
@@ -37,7 +37,7 @@ struct enable_bitmask_operators<upa::idna::Option> {
     static const bool enable = true;
 };
 
-namespace upa {
+namespace upa { // NOLINT(modernize-concat-nested-namespaces)
 namespace idna {
 namespace detail {
 

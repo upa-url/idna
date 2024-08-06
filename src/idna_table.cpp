@@ -4,8 +4,8 @@
 //
 #include "upa/idna/idna_table.h"
 
-namespace upa {
-namespace idna {
+namespace upa { // NOLINT(modernize-concat-nested-namespaces)
+namespace idna { // NOLINT(modernize-concat-nested-namespaces)
 namespace util {
 
 // BEGIN-GENERATED

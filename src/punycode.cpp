@@ -6,8 +6,8 @@
 #include <algorithm>
 #include <type_traits>
 
-namespace upa {
-namespace idna {
+namespace upa { // NOLINT(modernize-concat-nested-namespaces)
+namespace idna { // NOLINT(modernize-concat-nested-namespaces)
 namespace punycode {
 
 namespace {

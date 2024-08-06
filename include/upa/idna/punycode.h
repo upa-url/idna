@@ -7,8 +7,8 @@
 
 #include <string>
 
-namespace upa {
-namespace idna {
+namespace upa { // NOLINT(modernize-concat-nested-namespaces)
+namespace idna { // NOLINT(modernize-concat-nested-namespaces)
 namespace punycode {
 
 enum class status {

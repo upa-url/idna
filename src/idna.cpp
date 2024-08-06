@@ -13,7 +13,7 @@
 #include <string>
 #include <vector>
 
-namespace upa {
+namespace upa { // NOLINT(modernize-concat-nested-namespaces)
 namespace idna {
 
 // Split
