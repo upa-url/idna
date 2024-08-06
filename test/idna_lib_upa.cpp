@@ -56,30 +56,6 @@ namespace idna_lib {
             (is_input_ascii ? upa::idna::Option::InputASCII : upa::idna::Option::Default)
         );
 
-#if 0
-        // IdnaTest.txt (10.0.0) still have incorrect tests for toUnicode with error code [A4_2]
-        // In IdnaTestV2.txt starting with Version 15.0.0 these cases are labeled [X4_2]
-        // XXX: To pass them toUnicode must return error if returned domain has empty non-root label
-        if (res) {
-            auto domain_b = domain.begin();
-            auto domain_e = domain.end();
-            if (domain_b != domain_e) {
-                auto start = domain_b;
-                while (start != domain_e) { // while non-root
-                    auto it = std::find(start, domain_e, '.');
-                    if (start == it) { // is empty
-                        res = false;
-                        break;
-                    }
-                    if (it == domain_e) break;
-                    start = ++it; // skip delimiter
-                }
-            } else {
-                res = false;
-            }
-        }
-#endif
-
         // to utf-8
         output = utf8_from_utf32(domain);
 
