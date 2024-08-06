@@ -15,6 +15,7 @@
 
 namespace upa { // NOLINT(modernize-concat-nested-namespaces)
 namespace idna {
+namespace {
 
 // Split
 
@@ -36,10 +37,10 @@ enum BidiRes : int {
     IsBidiError = 0x02
 };
 
-static bool validate_label(const char32_t* label, const char32_t* label_end, Option options, bool full_check, int& bidiRes);
-static bool validate_bidi(const char32_t* label, const char32_t* label_end, int& bidiRes);
+bool validate_label(const char32_t* label, const char32_t* label_end, Option options, bool full_check, int& bidiRes);
+bool validate_bidi(const char32_t* label, const char32_t* label_end, int& bidiRes);
 
-static bool processing_mapped(std::u32string* pdecoded, const std::u32string& mapped, Option options) {
+bool processing_mapped(std::u32string* pdecoded, const std::u32string& mapped, Option options) {
     using namespace util;
 
     bool error = false;
@@ -86,7 +87,7 @@ static bool processing_mapped(std::u32string* pdecoded, const std::u32string& ma
     return !error;
 }
 
-static bool validate_label(const char32_t* label, const char32_t* label_end, Option options, bool full_check, int& bidiRes) {
+bool validate_label(const char32_t* label, const char32_t* label_end, Option options, bool full_check, int& bidiRes) {
     using namespace util;
 
     if (label != label_end) {
@@ -195,7 +196,7 @@ inline bool is_bidi(const char32_t* first, const char32_t* last) {
     return false;
 }
 
-static bool validate_bidi(const char32_t* label, const char32_t* label_end, int& bidiRes) {
+bool validate_bidi(const char32_t* label, const char32_t* label_end, int& bidiRes) {
     using namespace util;
 
     // To check rules the label must have at least one character
@@ -285,9 +286,6 @@ static bool validate_bidi(const char32_t* label, const char32_t* label_end, int&
     return true;
 }
 
-namespace detail {
-namespace {
-
 template <class InputIt>
 inline void str_append(std::string& dest, InputIt first, InputIt last) {
 #ifdef _MSC_VER
@@ -305,6 +303,7 @@ inline void str_append(std::string& dest, InputIt first, InputIt last) {
 
 } // namespace
 
+namespace detail {
 
 bool to_ascii_mapped(std::string& domain, const std::u32string& mapped, Option options) {
     // A1
