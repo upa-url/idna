@@ -4,6 +4,7 @@
 //
 #include "upa/idna/punycode.h"
 #include <algorithm>
+#include <cstdint>
 #include <type_traits>
 
 namespace upa { // NOLINT(modernize-concat-nested-namespaces)
