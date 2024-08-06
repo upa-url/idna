@@ -50,4 +50,4 @@ CheckOptions:
 
 WarningsAsErrors: '*'
 
-HeaderFilterRegex: 'include\/upa\/[^\/]+\.h$'
+HeaderFilterRegex: 'include\/upa\/.+\.h$'
