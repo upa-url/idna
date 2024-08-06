@@ -254,9 +254,8 @@ bool validate_bidi(const char32_t* label, const char32_t* label_end, int& bidiRe
                 if ((bidiRes & IsBidiDomain) || (cpflags & (util::CAT_Bidi_R_AL | util::CAT_Bidi_AN))
                     || is_bidi(it, label_end)) {
                     return false;
-                } else {
-                    bidiRes |= IsBidiError;
                 }
+                bidiRes |= IsBidiError;
             }
 #endif
         }
@@ -265,18 +264,16 @@ bool validate_bidi(const char32_t* label, const char32_t* label_end, int& bidiRe
             // error if bidi domain
             if (bidiRes & IsBidiDomain) {
                 return false;
-            } else {
-                bidiRes |= IsBidiError;
             }
+            bidiRes |= IsBidiError;
         }
     } else {
         // error if bidi domain
         if ((bidiRes & IsBidiDomain) || (cpflags & (util::CAT_Bidi_R_AL | util::CAT_Bidi_AN))
             || is_bidi(label, label_end)) {
             return false;
-        } else {
-            bidiRes |= IsBidiError;
         }
+        bidiRes |= IsBidiError;
     }
     return true;
 }
