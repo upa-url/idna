@@ -67,7 +67,6 @@ constexpr char ascii_to_lower_char(CharT c) noexcept {
 template <typename CharT>
 inline bool map(std::u32string& mapped, const CharT* input, const CharT* input_end, Option options, bool is_to_ascii) {
     using UCharT = typename std::make_unsigned<CharT>::type;
-    using namespace upa::idna::util;
 
     // P1 - Map
     if (has(options, Option::InputASCII)) {
@@ -76,15 +75,15 @@ inline bool map(std::u32string& mapped, const CharT* input, const CharT* input_e
         if (has(options, Option::UseSTD3ASCIIRules)) {
             for (const auto* it = input; it != input_end; ++it) {
                 const auto cp = static_cast<UCharT>(*it);
-                switch (asciiData[cp]) {
-                case AC_VALID:
+                switch (util::asciiData[cp]) {
+                case util::AC_VALID:
                     mapped.push_back(cp);
                     break;
-                case AC_MAPPED:
+                case util::AC_MAPPED:
                     mapped.push_back(cp | 0x20);
                     break;
                 default:
-                    // AC_DISALLOWED_STD3
+                    // util::AC_DISALLOWED_STD3
                     if (is_to_ascii)
                         return false;
                     mapped.push_back(cp);
@@ -95,26 +94,26 @@ inline bool map(std::u32string& mapped, const CharT* input, const CharT* input_e
                 mapped.push_back(ascii_to_lower_char(*it));
         }
     } else {
-        const uint32_t status_mask = getStatusMask(has(options, Option::UseSTD3ASCIIRules));
+        const uint32_t status_mask = util::getStatusMask(has(options, Option::UseSTD3ASCIIRules));
         for (auto it = input; it != input_end; ) {
-            const uint32_t cp = getCodePoint(it, input_end);
-            const uint32_t value = getCharInfo(cp);
+            const uint32_t cp = util::getCodePoint(it, input_end);
+            const uint32_t value = util::getCharInfo(cp);
 
             switch (value & status_mask) {
-            case CP_VALID:
+            case util::CP_VALID:
                 mapped.push_back(cp);
                 break;
-            case CP_MAPPED:
+            case util::CP_MAPPED:
                 if (has(options, Option::Transitional) && cp == 0x1E9E) {
                     // replace U+1E9E capital sharp s by “ss”
                     mapped.append(U"ss", 2);
                 } else {
-                    apply_mapping(value, mapped);
+                    util::apply_mapping(value, mapped);
                 }
                 break;
-            case CP_DEVIATION:
+            case util::CP_DEVIATION:
                 if (has(options, Option::Transitional)) {
-                    apply_mapping(value, mapped);
+                    util::apply_mapping(value, mapped);
                 } else {
                     mapped.push_back(cp);
                 }
@@ -124,9 +123,9 @@ inline bool map(std::u32string& mapped, const CharT* input, const CharT* input_e
                 // CP_NO_STD3_MAPPED, CP_NO_STD3_VALID if Option::UseSTD3ASCIIRules
                 // Starting with Unicode 15.1.0 - don't record an error
                 if (is_to_ascii && // to_ascii optimization
-                    ((value & CP_DISALLOWED_STD3) == 0
-                    ? !std::binary_search(std::begin(comp_disallowed), std::end(comp_disallowed), cp)
-                    : !std::binary_search(std::begin(comp_disallowed_std3), std::end(comp_disallowed_std3), cp)))
+                    ((value & util::CP_DISALLOWED_STD3) == 0
+                    ? !std::binary_search(std::begin(util::comp_disallowed), std::end(util::comp_disallowed), cp)
+                    : !std::binary_search(std::begin(util::comp_disallowed_std3), std::end(util::comp_disallowed_std3), cp)))
                     return false;
                 mapped.push_back(cp);
                 break;

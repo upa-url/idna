@@ -41,8 +41,6 @@ bool validate_label(const char32_t* label, const char32_t* label_end, Option opt
 bool validate_bidi(const char32_t* label, const char32_t* label_end, int& bidiRes);
 
 bool processing_mapped(std::u32string* pdecoded, const std::u32string& mapped, Option options) {
-    using namespace util;
-
     bool error = false;
 
     // P3 - Break
@@ -88,8 +86,6 @@ bool processing_mapped(std::u32string* pdecoded, const std::u32string& mapped, O
 }
 
 bool validate_label(const char32_t* label, const char32_t* label_end, Option options, bool full_check, int& bidiRes) {
-    using namespace util;
-
     if (label != label_end) {
         // V1 - The label must be in Unicode Normalization Form NFC
         if (full_check && !is_normalized_nfc(label, label_end))
@@ -114,18 +110,18 @@ bool validate_label(const char32_t* label, const char32_t* label_end, Option opt
         // V5 - can be ignored (todo)
 
         // V6
-        const uint32_t cpflags = getCharInfo(label[0]); // label != label_end
-        if (cpflags & CAT_MARK)
+        const uint32_t cpflags = util::getCharInfo(label[0]); // label != label_end
+        if (cpflags & util::CAT_MARK)
             return false;
 
         // V7
         // TODO: if (full_check)
-        const uint32_t valid_mask = getValidMask(
+        const uint32_t valid_mask = util::getValidMask(
             detail::has(options, Option::UseSTD3ASCIIRules),
             detail::has(options, Option::Transitional));
         for (auto it = label; it != label_end;) {
-            const uint32_t cpflags = getCharInfo(*it++); // it != label_end
-            if ((cpflags & valid_mask) != CP_VALID) {
+            const uint32_t cpflags = util::getCharInfo(*it++); // it != label_end
+            if ((cpflags & valid_mask) != util::CP_VALID) {
                 return false;
             }
         }
@@ -140,23 +136,23 @@ bool validate_label(const char32_t* label, const char32_t* label_end, Option opt
                     // ZERO WIDTH NON-JOINER
                     if (start == label)
                         return false;
-                    uint32_t cpflags = getCharInfo(*(--start)); // label != start
-                    if (!(cpflags & CAT_Virama)) {
+                    uint32_t cpflags = util::getCharInfo(*(--start)); // label != start
+                    if (!(cpflags & util::CAT_Virama)) {
                         // {R,D} is required on the right
                         if (it == label_end)
                             return false;
                         // (Joining_Type:{L,D})(Joining_Type:T)* \u200C
-                        while (!(cpflags & (CAT_Joiner_L | CAT_Joiner_D))) {
-                            if (!(cpflags & CAT_Joiner_T) || start == label)
+                        while (!(cpflags & (util::CAT_Joiner_L | util::CAT_Joiner_D))) {
+                            if (!(cpflags & util::CAT_Joiner_T) || start == label)
                                 return false;
-                            cpflags = getCharInfo(*(--start)); // label != start
+                            cpflags = util::getCharInfo(*(--start)); // label != start
                         }
                         // \u200C (Joining_Type:T)*(Joining_Type:{R,D})
-                        cpflags = getCharInfo(*it++); // it != label_end
-                        while (!(cpflags & (CAT_Joiner_R | CAT_Joiner_D))) {
-                            if (!(cpflags & CAT_Joiner_T) || it == label_end)
+                        cpflags = util::getCharInfo(*it++); // it != label_end
+                        while (!(cpflags & (util::CAT_Joiner_R | util::CAT_Joiner_D))) {
+                            if (!(cpflags & util::CAT_Joiner_T) || it == label_end)
                                 return false;
-                            cpflags = getCharInfo(*it++); // it != label_end
+                            cpflags = util::getCharInfo(*it++); // it != label_end
                         }
                         // HACK: because 0x200C is Non_Joining (U); 0x200D is Join_Causing (C), i.e.
                         // not L, D, R, T; then the cycle can be continued with `it` increased here
@@ -164,7 +160,7 @@ bool validate_label(const char32_t* label, const char32_t* label_end, Option opt
                 } else if (cp == 0x200D) {
                     //  ZERO WIDTH JOINER
                     if (start == label ||
-                        !(getCharInfo(*(--start)) & CAT_Virama)  // label != start
+                        !(util::getCharInfo(*(--start)) & util::CAT_Virama)  // label != start
                         ) {
                         return false;
                     }
@@ -182,23 +178,19 @@ bool validate_label(const char32_t* label, const char32_t* label_end, Option opt
 }
 
 inline bool is_bidi(const char32_t* first, const char32_t* last) {
-    using namespace util;
-
     // https://tools.ietf.org/html/rfc5893#section-2
     for (auto it = first; it != last;) {
-        const uint32_t cpflags = getCharInfo(*it++); // it != last
+        const uint32_t cpflags = util::getCharInfo(*it++); // it != last
         // A "Bidi domain name" is a domain name that contains at least one RTL
         // label. An RTL label is a label that contains at least one character
         // of type R, AL, or AN.
-        if (cpflags & (CAT_Bidi_R_AL | CAT_Bidi_AN))
+        if (cpflags & (util::CAT_Bidi_R_AL | util::CAT_Bidi_AN))
             return true;
     }
     return false;
 }
 
 bool validate_bidi(const char32_t* label, const char32_t* label_end, int& bidiRes) {
-    using namespace util;
-
     // To check rules the label must have at least one character
     if (label == label_end)
         return true;
@@ -210,35 +202,36 @@ bool validate_bidi(const char32_t* label, const char32_t* label_end, int& bidiRe
     }
 
     // 1. The first character must be a character with Bidi property L, R, or AL
-    uint32_t cpflags = getCharInfo(*label++); // label != label_end
-    if (cpflags & CAT_Bidi_R_AL) {
+    uint32_t cpflags = util::getCharInfo(*label++); // label != label_end
+    if (cpflags & util::CAT_Bidi_R_AL) {
         // RTL
         uint32_t end_cpflags = cpflags;
         uint32_t all_cpflags = 0;
         for (auto it = label; it != label_end;) {
-            cpflags = getCharInfo(*it++); // it != label_end
+            cpflags = util::getCharInfo(*it++); // it != label_end
             // 2. R, AL, AN, EN, ES, CS, ET, ON, BN, NSM
-            if (!(cpflags & (CAT_Bidi_R_AL | CAT_Bidi_AN | CAT_Bidi_EN | CAT_Bidi_ES_CS_ET_ON_BN | CAT_Bidi_NSM)))
+            if (!(cpflags & (util::CAT_Bidi_R_AL | util::CAT_Bidi_AN | util::CAT_Bidi_EN |
+                util::CAT_Bidi_ES_CS_ET_ON_BN | util::CAT_Bidi_NSM)))
                 return false;
             // 3. NSM
-            if (!(cpflags & CAT_Bidi_NSM))
+            if (!(cpflags & util::CAT_Bidi_NSM))
                 end_cpflags = cpflags;
             // 4. EN, AN
             all_cpflags |= cpflags;
         }
         // 3. R, AL, AN, EN
-        if (!(end_cpflags & (CAT_Bidi_R_AL | CAT_Bidi_AN | CAT_Bidi_EN)))
+        if (!(end_cpflags & (util::CAT_Bidi_R_AL | util::CAT_Bidi_AN | util::CAT_Bidi_EN)))
             return false;
         // 4. EN, AN
-        if ((all_cpflags & (CAT_Bidi_AN | CAT_Bidi_EN)) == (CAT_Bidi_AN | CAT_Bidi_EN))
+        if ((all_cpflags & (util::CAT_Bidi_AN | util::CAT_Bidi_EN)) == (util::CAT_Bidi_AN | util::CAT_Bidi_EN))
             return false;
         // is bidi domain
         bidiRes |= IsBidiDomain;
-    } else if (cpflags & CAT_Bidi_L) {
+    } else if (cpflags & util::CAT_Bidi_L) {
         // LTR
         uint32_t end_cpflags = cpflags;
         for (auto it = label; it != label_end;) {
-            cpflags = getCharInfo(*it++); // it != label_end
+            cpflags = util::getCharInfo(*it++); // it != label_end
 #if 0
             // 5. L, EN, ES, CS, ET, ON, BN, NSM
             if (!(cpflags & (CAT_Bidi_L | CAT_Bidi_EN | CAT_Bidi_ES_CS_ET_ON_BN | CAT_Bidi_NSM))) {
@@ -254,11 +247,12 @@ bool validate_bidi(const char32_t* label, const char32_t* label_end, int& bidiRe
                 end_cpflags = cpflags;
 #else
             // 5. L, EN, ES, CS, ET, ON, BN, NSM; 6. NSM
-            if (cpflags & (CAT_Bidi_L | CAT_Bidi_EN | CAT_Bidi_ES_CS_ET_ON_BN)) {
+            if (cpflags & (util::CAT_Bidi_L | util::CAT_Bidi_EN | util::CAT_Bidi_ES_CS_ET_ON_BN)) {
                 end_cpflags = cpflags;
-            } else if (!(cpflags & CAT_Bidi_NSM)) {
+            } else if (!(cpflags & util::CAT_Bidi_NSM)) {
                 // error if bidi domain
-                if ((bidiRes & IsBidiDomain) || (cpflags & (CAT_Bidi_R_AL | CAT_Bidi_AN)) || is_bidi(it, label_end)) {
+                if ((bidiRes & IsBidiDomain) || (cpflags & (util::CAT_Bidi_R_AL | util::CAT_Bidi_AN))
+                    || is_bidi(it, label_end)) {
                     return false;
                 } else {
                     bidiRes |= IsBidiError;
@@ -267,7 +261,7 @@ bool validate_bidi(const char32_t* label, const char32_t* label_end, int& bidiRe
 #endif
         }
         // 6. L, EN
-        if (!(end_cpflags & (CAT_Bidi_L | CAT_Bidi_EN))) {
+        if (!(end_cpflags & (util::CAT_Bidi_L | util::CAT_Bidi_EN))) {
             // error if bidi domain
             if (bidiRes & IsBidiDomain) {
                 return false;
@@ -277,7 +271,8 @@ bool validate_bidi(const char32_t* label, const char32_t* label_end, int& bidiRe
         }
     } else {
         // error if bidi domain
-        if ((bidiRes & IsBidiDomain) || (cpflags & (CAT_Bidi_R_AL | CAT_Bidi_AN)) || is_bidi(label, label_end)) {
+        if ((bidiRes & IsBidiDomain) || (cpflags & (util::CAT_Bidi_R_AL | util::CAT_Bidi_AN))
+            || is_bidi(label, label_end)) {
             return false;
         } else {
             bidiRes |= IsBidiError;
