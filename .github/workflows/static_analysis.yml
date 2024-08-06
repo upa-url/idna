@@ -1,0 +1,32 @@
+name: Static Analysis
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore: [ '**.md' ]
+  pull_request:
+    paths-ignore: [ '**.md' ]
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        include:
+          - name: clang-tidy-16 C++17
+            cxx_compiler: clang++-16
+            cxx_standard: 17
+            cmake_options: "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: apt-get install
+      if: ${{ matrix.install }}
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ${{ matrix.install }}
+    - name: cmake
+      run: cmake -S . -B build -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} ${{ matrix.cmake_options }}
+    - name: static analysis
+      run: clang-tidy-16 -p build src/*.*
