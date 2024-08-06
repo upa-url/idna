@@ -49,7 +49,7 @@ constexpr punycode_uint decode_digit(punycode_uint cp) {
 // the range 0 to base-1. The lowercase form is used.
 
 constexpr char encode_digit(punycode_uint d) {
-    return d + 22 + 75 * (d < 26);
+    return static_cast<char>(d + 22 + 75 * (d < 26));
     /*  0..25 map to ASCII a..z */
     /* 26..35 map to ASCII 0..9 */
 }
