@@ -106,10 +106,10 @@ void canonical_decompose(std::u32string& str)
         if (cp >= hangul::SBase && cp < hangul::SBase + hangul::SCount) {
             // Hangul Decomposition Algorithm
             const auto SIndex = cp - hangul::SBase;
-            out += hangul::LBase + SIndex / hangul::NCount; // L
-            out += hangul::VBase + (SIndex % hangul::NCount) / hangul::TCount; // V
+            out += static_cast<char32_t>(hangul::LBase + SIndex / hangul::NCount); // L
+            out += static_cast<char32_t>(hangul::VBase + (SIndex % hangul::NCount) / hangul::TCount); // V
             if (SIndex % hangul::TCount != 0)
-                out += hangul::TBase + SIndex % hangul::TCount; // T
+                out += static_cast<char32_t>(hangul::TBase + SIndex % hangul::TCount); // T
         } else {
             const auto cp_info = normalize::get_decomposition_info(cp);
             if (cp_info) {
