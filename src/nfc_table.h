@@ -69,7 +69,7 @@ inline std::size_t get_composition_len(std::uint16_t ci) {
 }
 
 inline const codepoint_key_val* get_composition_data(std::uint16_t ci) {
-    return comp_block_data + (ci & 0x7FF);
+    return static_cast<const codepoint_key_val*>(comp_block_data) + (ci & 0x7FF);
 }
 
 // Decomposition data
@@ -87,7 +87,7 @@ inline std::size_t get_decomposition_len(std::uint16_t di) {
 }
 
 inline const char32_t* get_decomposition_chars(std::uint16_t di) {
-    return decomp_block_data + (di & 0xFFF);
+    return static_cast<const char32_t*>(decomp_block_data) + (di & 0xFFF);
 }
 
 } // namespace normalize

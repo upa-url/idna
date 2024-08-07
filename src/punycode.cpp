@@ -205,7 +205,7 @@ status decode(std::u32string& output, const char32_t* first, const char32_t* las
     // Initialize the state:
 
     punycode_uint n = initial_n;
-    punycode_uint out = static_cast<punycode_uint>(output.length() - len0); // basic code points count
+    auto out = static_cast<punycode_uint>(output.length() - len0); // basic code points count
     punycode_uint i = 0;
     punycode_uint bias = initial_bias;
 

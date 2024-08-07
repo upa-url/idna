@@ -97,7 +97,8 @@ inline std::size_t apply_mapping(uint32_t val, StrT& output) {
             len += ind >> 8;
             ind &= 0xFF;
         }
-        output.append(allCharsTo + ind, allCharsTo + ind + len);
+        const auto* ptr = static_cast<const char32_t*>(allCharsTo) + ind;
+        output.append(ptr, len);
         return len;
     }
     return 0;
