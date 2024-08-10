@@ -11,7 +11,6 @@
 #include <iterator>
 #include <stdexcept>
 #include <string>
-#include <vector>
 
 namespace upa { // NOLINT(modernize-concat-nested-namespaces)
 namespace idna {
