@@ -28,7 +28,7 @@ extern const std::uint8_t ccc_block_index[];
 
 const std::size_t comp_block_shift = 5;
 const std::uint32_t comp_block_mask = 0x1F;
-const std::uint32_t comp_default_start = 0x11936;
+const std::uint32_t comp_default_start = 0x16D6A;
 const std::uint16_t comp_default_value = 0;
 extern const std::uint16_t comp_block[];
 extern const std::uint8_t comp_block_index[];
