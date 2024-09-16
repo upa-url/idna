@@ -27,6 +27,7 @@ int run_punycode_tests(const char* file_name);
 static std::string get_column8(const std::string& line, std::size_t& pos);
 //static std::u16string get_column16(const std::string& line, std::size_t& pos);
 static std::u32string get_column32(const std::string& line, std::size_t& pos);
+static std::string get_column8_idna(const std::string& line, std::size_t& pos, const std::string& def = "");
 static bool is_error(const std::string& col);
 static bool is_error_of_to_unicode(const std::string& col);
 
@@ -70,13 +71,13 @@ int run_idna_tests_v2(const char* file_name)
         if (line.length() > 0) {
             try {
                 std::size_t pos = 0;
-                const std::string c1 = get_column8(line, pos);
-                const std::string c2 = get_column8(line, pos);
-                const std::string c3 = get_column8(line, pos);
-                const std::string c4 = get_column8(line, pos);
-                const std::string c5 = get_column8(line, pos);
-                const std::string c6 = get_column8(line, pos);
-                const std::string c7 = get_column8(line, pos);
+                const std::string c1 = get_column8_idna(line, pos);     // source
+                const std::string c2 = get_column8_idna(line, pos, c1); // toUnicode
+                const std::string c3 = get_column8_idna(line, pos);     // toUnicodeStatus
+                const std::string c4 = get_column8_idna(line, pos, c2); // toAsciiN
+                const std::string c5 = get_column8_idna(line, pos, c3); // toAsciiNStatus
+                const std::string c6 = get_column8_idna(line, pos, c4); // toAsciiT
+                const std::string c7 = get_column8_idna(line, pos, c5); // toAsciiTStatus
 
                 // source
                 const std::string& source(c1);
@@ -84,16 +85,16 @@ int run_idna_tests_v2(const char* file_name)
                     [](char c) { return static_cast<unsigned char>(c) < 0x80; });
 
                 // to_unicode
-                const std::string& exp_unicode(c2.empty() ? source : c2);
+                const std::string& exp_unicode(c2);
                 const bool exp_unicode_ok = !is_error_of_to_unicode(c3);
 
                 // to_ascii
-                const std::string& exp_ascii(c4.empty() ? exp_unicode : c4);
-                const bool exp_ascii_ok = c5.empty() ? exp_unicode_ok : !is_error(c5);
+                const std::string& exp_ascii(c4);
+                const bool exp_ascii_ok = !is_error(c5);
 
                 // to_ascii transitional
-                const std::string& exp_ascii_trans(c6.empty() ? exp_ascii : c6);
-                const bool exp_ascii_trans_ok = c7.empty() ? exp_ascii_ok : !is_error(c7);
+                const std::string& exp_ascii_trans(c6);
+                const bool exp_ascii_trans_ok = !is_error(c7);
 
 
                 // test
@@ -250,6 +251,9 @@ inline std::basic_string<CharT> get_column(const std::string& line, std::size_t&
     const char* last = line.data() + pos_end;
     AsciiTrimSpaceTabs(first, last);
 
+    // get next pos: skip ';'
+    pos = pos_end < line.length() ? pos_end + 1 : pos_end;
+
     // unescape \uXXXX or \x{XXXX}
     const char* p = std::find(first, last, '\\');
     std::basic_string<CharT> output(first, p);
@@ -263,9 +267,6 @@ inline std::basic_string<CharT> get_column(const std::string& line, std::size_t&
             p++;
         }
     }
-
-    // skip ';'
-    pos = pos_end < line.length() ? pos_end + 1 : pos_end;
     return output;
 }
 
@@ -279,6 +280,16 @@ static std::string get_column8(const std::string& line, std::size_t& pos) {
 
 static std::u32string get_column32(const std::string& line, std::size_t& pos) {
     return get_column<char32_t>(line, pos);
+}
+
+static std::string get_column8_idna(const std::string& line, std::size_t& pos, const std::string& def) {
+    std::string value = get_column8(line, pos);
+    if (value.empty())
+        return def;
+    // "" means an empty string
+    if (value == "\"\"")
+        return {};
+    return value;
 }
 
 inline bool is_error(const std::string& col) {
