@@ -44,6 +44,12 @@ int main()
     return err;
 }
 
+class utf_error : public std::runtime_error {
+public:
+    explicit utf_error(const char* what_arg)
+        : std::runtime_error(what_arg) {}
+};
+
 int run_idna_tests_v2(const char* file_name)
 {
     DataDrivenTest ddt;
@@ -137,7 +143,11 @@ int run_idna_tests_v2(const char* file_name)
                     }
                 });
             }
-            catch (std::exception& ex) {
+            catch (const utf_error& ex) {
+                std::cerr << "WARNING: " << ex.what() << std::endl;
+                std::cerr << " IGNORE LINE(" << line_num << "): " << line << std::endl;
+            }
+            catch (const std::exception& ex) {
                 std::cerr << "ERROR: " << ex.what() << std::endl;
                 std::cerr << " LINE(" << line_num << "): " << line << std::endl;
             }
@@ -208,6 +218,8 @@ inline void code_point_to_utf(int code_point, std::string& output) {
         if (code_point < 0x800) {
             output.push_back(static_cast<char>(0xc0 | (code_point >> 6)));
         } else {
+            if (code_point >= 0xD800 && code_point <= 0xDFFF)
+                throw utf_error{ "unpaired surrogate" };
             if (code_point < 0x10000) {
                 output.push_back(static_cast<char>(0xe0 | (code_point >> 12)));
             } else {
@@ -393,7 +405,7 @@ int run_punycode_tests(const char* file_name)
                     tc.assert_equal(inp_source, out_decoded, "punycode::decode");
                 });
             }
-            catch (std::exception& ex) {
+            catch (const std::exception& ex) {
                 std::cerr << "ERROR: " << ex.what() << std::endl;
                 std::cerr << " LINE(" << line_num << "): " << line << std::endl;
             }
