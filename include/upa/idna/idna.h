@@ -66,7 +66,7 @@ constexpr char ascii_to_lower_char(CharT c) noexcept {
 // IDNA map and normalize NFC
 template <typename CharT>
 inline bool map(std::u32string& mapped, const CharT* input, const CharT* input_end, Option options, bool is_to_ascii) {
-    using UCharT = typename std::make_unsigned<CharT>::type;
+    using UCharT = std::make_unsigned_t<CharT>;
 
     // P1 - Map
     if (has(options, Option::InputASCII)) {
@@ -148,7 +148,7 @@ bool to_unicode_mapped(std::u32string& domain, const std::u32string& mapped, Opt
 /// @brief Implements the Unicode IDNA ToASCII
 ///
 /// See: https://www.unicode.org/reports/tr46/#ToASCII
-/// 
+///
 /// @param[out] domain buffer to store result string
 /// @param[in]  input source domain string
 /// @param[in]  input_end the end of source domain string
@@ -167,7 +167,7 @@ inline bool to_ascii(std::string& domain, const CharT* input, const CharT* input
 /// @brief Implements the Unicode IDNA ToUnicode
 ///
 /// See: https://www.unicode.org/reports/tr46/#ToUnicode
-/// 
+///
 /// @param[out] domain buffer to store result string
 /// @param[in]  input source domain string
 /// @param[in]  input_end the end of source domain string

@@ -32,7 +32,7 @@ constexpr char delimiter = 0x2D;
 // basic(cp) tests whether cp is a basic code point:
 template <class T>
 constexpr bool basic(T cp) {
-    return static_cast<typename std::make_unsigned<T>::type>(cp) < 0x80;
+    return static_cast<std::make_unsigned_t<T>>(cp) < 0x80;
 }
 
 // decode_digit(cp) returns the numeric value of a basic code
@@ -245,7 +245,7 @@ status decode(std::u32string& output, const char32_t* first, const char32_t* las
         i %= (out + 1);
 
         // Insert n at position i of the output:
-        
+
         if (out >= kMaxCodePoints)
             return status::big_output;
 
