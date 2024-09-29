@@ -7,9 +7,7 @@
 
 #include <string>
 
-namespace upa { // NOLINT(modernize-concat-nested-namespaces)
-namespace idna { // NOLINT(modernize-concat-nested-namespaces)
-namespace punycode {
+namespace upa::idna::punycode {
 
 enum class status {
     success = 0,
@@ -21,8 +19,6 @@ enum class status {
 status encode(std::string& output, const char32_t* first, const char32_t* last);
 status decode(std::u32string& output, const char32_t* first, const char32_t* last);
 
-} // namespace punycode
-} // namespace idna
-} // namespace upa
+} // namespace upa::idna::punycode
 
 #endif // UPA_IDNA_PUNYCODE_H

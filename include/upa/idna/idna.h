@@ -12,8 +12,7 @@
 #include <string>
 #include <type_traits> // std::make_unsigned
 
-namespace upa { // NOLINT(modernize-concat-nested-namespaces)
-namespace idna {
+namespace upa::idna {
 
 enum class Option {
     Default           = 0,
@@ -27,8 +26,7 @@ enum class Option {
     InputASCII        = 0x1000,
 };
 
-} // namespace idna
-} // namespace upa
+} // namespace upa::idna
 
 // enable bit mask operators on upa::idna::Option
 template<>
@@ -36,8 +34,7 @@ struct enable_bitmask_operators<upa::idna::Option> {
     static const bool enable = true;
 };
 
-namespace upa { // NOLINT(modernize-concat-nested-namespaces)
-namespace idna {
+namespace upa::idna {
 namespace detail {
 
 // Bit flags
@@ -65,7 +62,7 @@ constexpr char ascii_to_lower_char(CharT c) noexcept {
 // IDNA map and normalize NFC
 template <typename CharT>
 inline bool map(std::u32string& mapped, const CharT* input, const CharT* input_end, Option options, bool is_to_ascii) {
-    using UCharT = typename std::make_unsigned<CharT>::type;
+    using UCharT = std::make_unsigned_t<CharT>;
 
     // P1 - Map
     if (has(options, Option::InputASCII)) {
@@ -244,7 +241,6 @@ inline unsigned unicode_version() {
 }
 
 
-} // namespace idna
-} // namespace upa
+} // namespace upa::idna
 
 #endif // UPA_IDNA_IDNA_H

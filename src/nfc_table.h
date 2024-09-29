@@ -8,9 +8,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace upa { // NOLINT(modernize-concat-nested-namespaces)
-namespace idna { // NOLINT(modernize-concat-nested-namespaces)
-namespace normalize {
+namespace upa::idna::normalize {
 
 struct codepoint_key_val {
     char32_t key;
@@ -90,8 +88,6 @@ inline const char32_t* get_decomposition_chars(std::uint16_t di) {
     return static_cast<const char32_t*>(decomp_block_data) + (di & 0xFFF);
 }
 
-} // namespace normalize
-} // namespace idna
-} // namespace upa
+} // namespace upa::idna::normalize
 
 #endif // #ifndef UPA_IDNA_NFC_TABLE_H
