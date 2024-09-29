@@ -14,14 +14,14 @@ jobs:
     strategy:
       matrix:
         include:
-          - name: clang++ C++11
-            cxx_compiler: clang++
-            cxx_standard: 11
-            cmake_options: ""
-
           - name: clang++ C++17
             cxx_compiler: clang++
             cxx_standard: 17
+            cmake_options: ""
+
+          - name: clang++ C++20
+            cxx_compiler: clang++
+            cxx_standard: 20
             cmake_options: ""
 
     steps:
