@@ -8,9 +8,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace upa { // NOLINT(modernize-concat-nested-namespaces)
-namespace idna { // NOLINT(modernize-concat-nested-namespaces)
-namespace util {
+namespace upa::idna::util {
 
 // ASCII
 const std::uint8_t AC_VALID = 0x01;
@@ -104,8 +102,6 @@ inline std::size_t apply_mapping(uint32_t val, StrT& output) {
     return 0;
 }
 
-} // namespace util
-} // namespace idna
-} // namespace upa
+} // namespace upa::idna::util
 
 #endif // UPA_IDNA_IDNA_TABLE_H

@@ -7,9 +7,7 @@
 
 #include <cstdint>
 
-namespace upa { // NOLINT(modernize-concat-nested-namespaces)
-namespace idna { // NOLINT(modernize-concat-nested-namespaces)
-namespace util {
+namespace upa::idna::util {
 
 // Get code point from UTF-8
 
@@ -97,8 +95,6 @@ inline uint32_t getCodePoint(const char32_t*& it, const char32_t*) {
     return *it++;
 }
 
-} // namespace util
-} // namespace idna
-} // namespace upa
+} // namespace upa::idna::util
 
 #endif // UPA_IDNA_ITERATE_UTF_H

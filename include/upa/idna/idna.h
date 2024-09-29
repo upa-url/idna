@@ -13,8 +13,7 @@
 #include <string>
 #include <type_traits> // std::make_unsigned
 
-namespace upa { // NOLINT(modernize-concat-nested-namespaces)
-namespace idna {
+namespace upa::idna {
 
 enum class Option {
     Default           = 0,
@@ -28,8 +27,7 @@ enum class Option {
     InputASCII        = 0x1000,
 };
 
-} // namespace idna
-} // namespace upa
+} // namespace upa::idna
 
 // enable bit mask operators on upa::idna::Option
 template<>
@@ -37,8 +35,7 @@ struct enable_bitmask_operators<upa::idna::Option> {
     static const bool enable = true;
 };
 
-namespace upa { // NOLINT(modernize-concat-nested-namespaces)
-namespace idna {
+namespace upa::idna {
 namespace detail {
 
 // Bit flags
@@ -247,7 +244,6 @@ inline unsigned unicode_version() {
 }
 
 
-} // namespace idna
-} // namespace upa
+} // namespace upa::idna
 
 #endif // UPA_IDNA_IDNA_H

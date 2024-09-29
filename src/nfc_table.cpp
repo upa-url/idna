@@ -4,9 +4,7 @@
 //
 #include "nfc_table.h"
 
-namespace upa { // NOLINT(modernize-concat-nested-namespaces)
-namespace idna { // NOLINT(modernize-concat-nested-namespaces)
-namespace normalize {
+namespace upa::idna::normalize {
 
 // BEGIN-GENERATED
 const std::uint8_t ccc_block[] = {
@@ -1237,6 +1235,4 @@ const char32_t decomp_block_data[] = {
 };
 // END-GENERATED
 
-} // namespace normalize
-} // namespace idna
-} // namespace upa
+} // namespace upa::idna::normalize

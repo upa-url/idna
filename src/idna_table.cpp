@@ -4,9 +4,7 @@
 //
 #include "upa/idna/idna_table.h"
 
-namespace upa { // NOLINT(modernize-concat-nested-namespaces)
-namespace idna { // NOLINT(modernize-concat-nested-namespaces)
-namespace util {
+namespace upa::idna::util {
 
 // BEGIN-GENERATED
 const std::uint32_t blockData[] = {
@@ -2136,6 +2134,4 @@ const std::uint8_t asciiData[128] = {
 
 // END-GENERATED
 
-} // namespace util
-} // namespace idna
-} // namespace upa
+} // namespace upa::idna::util

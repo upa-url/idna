@@ -7,9 +7,7 @@
 #include <cstdint>
 #include <type_traits>
 
-namespace upa { // NOLINT(modernize-concat-nested-namespaces)
-namespace idna { // NOLINT(modernize-concat-nested-namespaces)
-namespace punycode {
+namespace upa::idna::punycode {
 
 namespace {
 
@@ -257,6 +255,4 @@ status decode(std::u32string& output, const char32_t* first, const char32_t* las
 }
 
 
-} // namespace punycode
-} // namespace idna
-} // namespace upa
+} // namespace upa::idna::punycode
