@@ -145,7 +145,7 @@ bool to_unicode_mapped(std::u32string& domain, const std::u32string& mapped, Opt
 /// @brief Implements the Unicode IDNA ToASCII
 ///
 /// See: https://www.unicode.org/reports/tr46/#ToASCII
-/// 
+///
 /// @param[out] domain buffer to store result string
 /// @param[in]  input source domain string
 /// @param[in]  input_end the end of source domain string
@@ -164,7 +164,7 @@ inline bool to_ascii(std::string& domain, const CharT* input, const CharT* input
 /// @brief Implements the Unicode IDNA ToUnicode
 ///
 /// See: https://www.unicode.org/reports/tr46/#ToUnicode
-/// 
+///
 /// @param[out] domain buffer to store result string
 /// @param[in]  input source domain string
 /// @param[in]  input_end the end of source domain string
@@ -240,7 +240,7 @@ constexpr unsigned make_unicode_version(unsigned n1, unsigned n2 = 0,
 /// @return encoded Unicode version
 /// @see make_unicode_version
 inline unsigned unicode_version() {
-    return make_unicode_version(15, 1);
+    return make_unicode_version(16);
 }
 
 
