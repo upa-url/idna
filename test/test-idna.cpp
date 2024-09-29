@@ -305,7 +305,7 @@ inline std::basic_ostream<CharT, Traits>& output_str(std::basic_ostream<CharT, T
             os << "\\x";
             auto flags_save = os.flags();
             auto fill_save = os.fill('0');
-            os << std::hex << std::uppercase << std::setw(width) << ch;
+            os << std::hex << std::uppercase << std::setw(width) << static_cast<std::uint32_t>(ch);
             os.fill(fill_save);
             os.flags(flags_save);
         }
