@@ -117,15 +117,6 @@ void make_mapping_table(std::string data_path) {
             has_mapped = true;
         } else if (col[0] == "valid") {
             state = CP_VALID;
-#if 0
-        // starting with Unicode 16.0.0 IdnaMappingTable.txt does
-        // not contain STD3 status values
-        } else if (col[0] == "disallowed_STD3_mapped") {
-            state = CP_NO_STD3_MAPPED;
-            has_mapped = true;
-        } else if (col[0] == "disallowed_STD3_valid") {
-            state = CP_NO_STD3_VALID;
-#endif
         } else {
             // TODO: throw
             std::cerr << "Unknown state: " << col[0] << std::endl;
@@ -247,7 +238,6 @@ void make_mapping_table(std::string data_path) {
         }
     });
 
-#if 1
     // DerivedCombiningClass.txt
     file_name = data_path + "DerivedCombiningClass.txt";
     parse_UnicodeData<1>(file_name, [&](int cp0, int cp1, const auto& col) {
@@ -315,7 +305,6 @@ void make_mapping_table(std::string data_path) {
             }
         }
     });
-#endif
 
     //=======================================================================
     // Output Data
