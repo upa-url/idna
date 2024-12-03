@@ -8,8 +8,7 @@
 #include <iterator>
 
 
-namespace upa { // NOLINT(modernize-concat-nested-namespaces)
-namespace idna {
+namespace upa::idna {
 
 namespace hangul {
     constexpr char32_t SBase = 0xAC00;
@@ -160,5 +159,4 @@ bool is_normalized_nfc(const char32_t* first, const char32_t* last) {
 }
 
 
-} // namespace idna
-} // namespace upa
+} // namespace upa::idna
