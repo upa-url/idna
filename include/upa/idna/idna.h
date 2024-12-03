@@ -28,17 +28,10 @@ enum class Option {
     InputASCII        = 0x1000,
 };
 
-} // namespace idna
-} // namespace upa
-
-// enable bit mask operators on upa::idna::Option
 template<>
-struct enable_bitmask_operators<upa::idna::Option> {
-    static const bool enable = true;
-};
+struct enable_bitmask_operators<Option> : public std::true_type {};
 
-namespace upa { // NOLINT(modernize-concat-nested-namespaces)
-namespace idna {
+
 namespace detail {
 
 // Bit flags
