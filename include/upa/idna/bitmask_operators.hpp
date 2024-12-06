@@ -1,5 +1,5 @@
-#ifndef UPA_BITMASK_HPP
-#define UPA_BITMASK_HPP
+#ifndef UPA_IDNA_BITMASK_OPERATORS_HPP
+#define UPA_IDNA_BITMASK_OPERATORS_HPP
 
 // (C) Copyright 2015 Just Software Solutions Ltd
 //
@@ -103,4 +103,4 @@ operator^=(E& lhs, E rhs) noexcept {
     return lhs;
 }
 
-#endif // UPA_BITMASK_HPP
+#endif // UPA_IDNA_BITMASK_OPERATORS_HPP
