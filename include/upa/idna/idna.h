@@ -35,7 +35,7 @@ struct enable_bitmask_operators<Option> : public std::true_type {};
 namespace detail {
 
 // Bit flags
-inline bool has(Option option, const Option value) {
+constexpr bool has(Option option, const Option value) {
     return (option & value) == value;
 }
 
@@ -43,9 +43,9 @@ inline Option domain_options(bool be_strict, bool is_input_ascii) {
     // https://url.spec.whatwg.org/#concept-domain-to-ascii
     // https://url.spec.whatwg.org/#concept-domain-to-unicode
     // Note. The to_unicode ignores Option::VerifyDnsLength
-    auto options = be_strict
-        ? Option::CheckBidi | Option::CheckJoiners | Option::UseSTD3ASCIIRules | Option::VerifyDnsLength
-        : Option::CheckBidi | Option::CheckJoiners;
+    auto options = Option::CheckBidi | Option::CheckJoiners;
+    if (be_strict)
+        options |= Option::CheckHyphens | Option::UseSTD3ASCIIRules | Option::VerifyDnsLength;
     if (is_input_ascii)
         options |= Option::InputASCII;
     return options;
