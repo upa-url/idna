@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cstdint>
+#include <filesystem>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -22,8 +23,8 @@ inline std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, T
 #include "ddt/DataDrivenTest.hpp"
 
 
-int run_idna_tests_v2(const char* file_name);
-int run_punycode_tests(const char* file_name);
+int run_idna_tests_v2(const std::filesystem::path& file_name);
+int run_punycode_tests(const std::filesystem::path& file_name);
 static std::string get_column8(const std::string& line, std::size_t& pos);
 //static std::u16string get_column16(const std::string& line, std::size_t& pos);
 static std::u32string get_column32(const std::string& line, std::size_t& pos);
@@ -43,7 +44,7 @@ int main()
     return err;
 }
 
-int run_idna_tests_v2(const char* file_name)
+int run_idna_tests_v2(const std::filesystem::path& file_name)
 {
     DataDrivenTest ddt;
     ddt.config_show_passed(false);
@@ -329,7 +330,7 @@ inline std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, T
 
 #include "upa/idna/punycode.h"
 
-int run_punycode_tests(const char* file_name)
+int run_punycode_tests(const std::filesystem::path& file_name)
 {
     DataDrivenTest ddt;
     ddt.config_show_passed(false);

@@ -3,12 +3,13 @@
 // found in the LICENSE file.
 //
 #include "unicode_data_tools.h"
+#include <filesystem>
 #include <unordered_set>
 
 using namespace upa::tools;
 
 
-static void make_mapping_table(std::string data_path);
+static void make_mapping_table(const std::filesystem::path& data_path);
 
 int main(int argc, char* argv[])
 {
@@ -78,11 +79,11 @@ struct char_item_less {
 
 // Make mapping table
 
-static void make_comp_disallowed_tables(std::string data_path,
+static void make_comp_disallowed_tables(const std::filesystem::path& data_path,
     const std::vector<char_item>& arrChars,
     std::ostream& fout_head, std::ostream& fout);
 
-void make_mapping_table(std::string data_path) {
+void make_mapping_table(const std::filesystem::path& data_path) {
     const int MAX_CODE_POINT = 0x10FFFF;
 
     // XXX: intentional memory leak to speed up program exit
@@ -91,15 +92,9 @@ void make_mapping_table(std::string data_path) {
     // mapped chars string
     string_to_t allCharsTo;
 
-    // Append '/' to data_path
-    if (data_path.length() > 0) {
-        char c = data_path[data_path.length() - 1];
-        if (c != '\\' && c != '/') data_path += '/';
-    }
-
     // http://www.unicode.org/reports/tr46/#IDNA_Mapping_Table
     // IdnaMappingTable.txt
-    std::string file_name = data_path + "IdnaMappingTable.txt";
+    auto file_name = data_path / "IdnaMappingTable.txt";
     parse_UnicodeData<2>(file_name, [&](int cp0, int cp1, const auto& col) {
         bool has_mapped = false;
 
@@ -223,7 +218,7 @@ void make_mapping_table(std::string data_path) {
 
 
     // DerivedGeneralCategory.txt
-    file_name = data_path + "DerivedGeneralCategory.txt";
+    file_name = data_path / "DerivedGeneralCategory.txt";
     parse_UnicodeData<1>(file_name, [&](int cp0, int cp1, const auto& col) {
         if (col[0].length() > 0 && col[0][0] == 'M') {
             for (int cp = cp0; cp <= cp1; cp++) {
@@ -238,7 +233,7 @@ void make_mapping_table(std::string data_path) {
 
 #if 1
     // DerivedCombiningClass.txt
-    file_name = data_path + "DerivedCombiningClass.txt";
+    file_name = data_path / "DerivedCombiningClass.txt";
     parse_UnicodeData<1>(file_name, [&](int cp0, int cp1, const auto& col) {
         // 9 - Virama
         if (col[0] == "9") {
@@ -253,7 +248,7 @@ void make_mapping_table(std::string data_path) {
     });
 
     // DerivedJoiningType.txt
-    file_name = data_path + "DerivedJoiningType.txt";
+    file_name = data_path / "DerivedJoiningType.txt";
     parse_UnicodeData<1>(file_name, [&](int cp0, int cp1, const auto& col) {
         if (col[0].length() == 1) {
             uint32_t flag = 0;
@@ -276,7 +271,7 @@ void make_mapping_table(std::string data_path) {
     });
 
     // DerivedBidiClass.txt
-    file_name = data_path + "DerivedBidiClass.txt";
+    file_name = data_path / "DerivedBidiClass.txt";
     parse_UnicodeData<1>(file_name, [&](int cp0, int cp1, const auto& col) {
         uint32_t flag = 0;
         if (col[0] == "L") {
@@ -337,14 +332,14 @@ void make_mapping_table(std::string data_path) {
     //=======================================================================
     // Generate code
 
-    file_name = data_path + "GEN-idna-tables.txt";
+    file_name = data_path / "GEN-idna-tables.txt";
     std::ofstream fout(file_name, std::ios_base::out);
     if (!fout.is_open()) {
         std::cerr << "Can't open destination file: " << file_name << std::endl;
         return;
     }
 
-    file_name = data_path + "GEN-idna-tables.H.txt";
+    file_name = data_path / "GEN-idna-tables.H.txt";
     std::ofstream fout_head(file_name, std::ios_base::out);
     if (!fout_head.is_open()) {
         std::cerr << "Can't open destination file: " << file_name << std::endl;
@@ -505,13 +500,13 @@ bool is_hangul_composable(char32_t cp) {
     return false;
 }
 
-void make_comp_disallowed_tables(std::string data_path,
+void make_comp_disallowed_tables(const std::filesystem::path& data_path,
     const std::vector<char_item>& arrChars,
     std::ostream& fout_head, std::ostream& fout)
 {
     // Full composition exclusion
     std::unordered_set<char32_t> composition_exclusion;
-    std::string file_name = data_path + "DerivedNormalizationProps.txt";
+    auto file_name = data_path / "DerivedNormalizationProps.txt";
     parse_UnicodeData<1>(file_name,
         [&](int cp0, int cp1, const auto& col) {
             if (col[0] == "Full_Composition_Exclusion") {
@@ -522,7 +517,7 @@ void make_comp_disallowed_tables(std::string data_path,
 
     std::unordered_set<char32_t> composables;
 
-    file_name = data_path + "UnicodeData.txt";
+    file_name = data_path / "UnicodeData.txt";
     parse_UnicodeData<5>(file_name,
         [&](int cp0, int cp1, const auto& col) {
             // https://www.unicode.org/reports/tr44/#Character_Decomposition_Mappings
