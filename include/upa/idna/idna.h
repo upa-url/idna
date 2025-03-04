@@ -7,7 +7,7 @@
 
 #include "bitmask_operators.hpp"
 #include "idna_table.h"
-#include "idna_version.h"
+#include "idna_version.h" // IWYU pragma: export
 #include "iterate_utf.h"
 #include "nfc.h"
 #include <string>
