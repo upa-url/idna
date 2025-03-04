@@ -31,7 +31,7 @@ constexpr char delimiter = 0x2D;
 
 // basic(cp) tests whether cp is a basic code point:
 template <class T>
-constexpr bool basic(T cp) {
+constexpr bool basic(T cp) noexcept {
     return static_cast<typename std::make_unsigned<T>::type>(cp) < 0x80;
 }
 
@@ -39,7 +39,7 @@ constexpr bool basic(T cp) {
 // point (for use in representing integers) in the range 0 to
 // base-1, or base if cp does not represent a value.
 
-constexpr punycode_uint decode_digit(punycode_uint cp) {
+constexpr punycode_uint decode_digit(punycode_uint cp) noexcept {
     return cp - 48 < 10 ? cp - 22 : cp - 65 < 26 ? cp - 65 :
         cp - 97 < 26 ? cp - 97 : base;
 }
@@ -48,7 +48,7 @@ constexpr punycode_uint decode_digit(punycode_uint cp) {
 // (when used for representing integers) is d, which needs to be in
 // the range 0 to base-1. The lowercase form is used.
 
-constexpr char encode_digit(punycode_uint d) {
+constexpr char encode_digit(punycode_uint d) noexcept {
     return static_cast<char>(d + 22 + 75 * (d < 26));
     /*  0..25 map to ASCII a..z */
     /* 26..35 map to ASCII 0..9 */
@@ -245,7 +245,7 @@ status decode(std::u32string& output, const char32_t* first, const char32_t* las
         i %= (out + 1);
 
         // Insert n at position i of the output:
-        
+
         if (out >= kMaxCodePoints)
             return status::big_output;
 

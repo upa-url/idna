@@ -35,11 +35,11 @@ struct enable_bitmask_operators<Option> : public std::true_type {};
 namespace detail {
 
 // Bit flags
-constexpr bool has(Option option, const Option value) {
+constexpr bool has(Option option, const Option value) noexcept {
     return (option & value) == value;
 }
 
-inline Option domain_options(bool be_strict, bool is_input_ascii) {
+inline Option domain_options(bool be_strict, bool is_input_ascii) noexcept {
     // https://url.spec.whatwg.org/#concept-domain-to-ascii
     // https://url.spec.whatwg.org/#concept-domain-to-unicode
     // Note. The to_unicode ignores Option::VerifyDnsLength

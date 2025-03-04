@@ -16,7 +16,7 @@ namespace util {
 constexpr char32_t kReplacementCharacter = 0xFFFD;
 
 // https://encoding.spec.whatwg.org/#utf-8-decoder
-inline uint32_t getCodePoint(const char*& it, const char* last) {
+inline uint32_t getCodePoint(const char*& it, const char* last) noexcept {
     const auto uchar = [](char c) { return static_cast<unsigned char>(c); };
     // assume it != last
     uint32_t c1 = uchar(*it++);
@@ -59,25 +59,25 @@ inline uint32_t getCodePoint(const char*& it, const char* last) {
 // Get code point from UTF-16
 
 template <class T>
-inline bool is_surrogate_lead(T ch) {
+constexpr bool is_surrogate_lead(T ch) noexcept {
     return (ch & 0xFFFFFC00) == 0xD800;
 }
 
 template <class T>
-inline bool is_surrogate_trail(T ch) {
+constexpr bool is_surrogate_trail(T ch) noexcept {
     return (ch & 0xFFFFFC00) == 0xDC00;
 }
 
 // Get a supplementary code point value(U + 10000..U + 10ffff)
 // from its lead and trail surrogates.
-inline uint32_t get_suplementary(uint32_t lead, uint32_t trail) {
-    const uint32_t surrogate_offset = (static_cast<uint32_t>(0xD800) << 10) + 0xDC00 - 0x10000;
+inline uint32_t get_suplementary(uint32_t lead, uint32_t trail) noexcept {
+    constexpr uint32_t surrogate_offset = (static_cast<uint32_t>(0xD800) << 10) + 0xDC00 - 0x10000;
     return (lead << 10) + trail - surrogate_offset;
 }
 
 // assumes it != last
 
-inline uint32_t getCodePoint(const char16_t*& it, const char16_t* last) {
+inline uint32_t getCodePoint(const char16_t*& it, const char16_t* last) noexcept {
     // assume it != last
     const uint32_t c1 = *it++;
     if (is_surrogate_lead(c1) && it != last) {
@@ -92,7 +92,7 @@ inline uint32_t getCodePoint(const char16_t*& it, const char16_t* last) {
 
 // Get code point from UTF-32
 
-inline uint32_t getCodePoint(const char32_t*& it, const char32_t*) {
+inline uint32_t getCodePoint(const char32_t*& it, const char32_t*) noexcept {
     // assume it != last
     return *it++;
 }
