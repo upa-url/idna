@@ -1,4 +1,4 @@
-// Copyright 2017-2024 Rimas Misevičius
+// Copyright 2017-2025 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -7,6 +7,7 @@
 
 #include "bitmask_operators.hpp"
 #include "idna_table.h"
+#include "idna_version.h"
 #include "iterate_utf.h"
 #include "nfc.h"
 #include <string>
