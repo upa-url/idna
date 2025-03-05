@@ -77,7 +77,7 @@ operator~(E lhs) noexcept {
 }
 
 template<typename E>
-constexpr typename std::enable_if<upa::idna::enable_bitmask_operators<E>::value, E&>::type
+inline typename std::enable_if<upa::idna::enable_bitmask_operators<E>::value, E&>::type
 operator|=(E& lhs, E rhs) noexcept {
     using underlying = typename std::underlying_type<E>::type;
     lhs = static_cast<E>(
@@ -86,7 +86,7 @@ operator|=(E& lhs, E rhs) noexcept {
 }
 
 template<typename E>
-constexpr typename std::enable_if<upa::idna::enable_bitmask_operators<E>::value, E&>::type
+inline typename std::enable_if<upa::idna::enable_bitmask_operators<E>::value, E&>::type
 operator&=(E& lhs, E rhs) noexcept {
     using underlying = typename std::underlying_type<E>::type;
     lhs = static_cast<E>(
@@ -95,7 +95,7 @@ operator&=(E& lhs, E rhs) noexcept {
 }
 
 template<typename E>
-constexpr typename std::enable_if<upa::idna::enable_bitmask_operators<E>::value, E&>::type
+inline typename std::enable_if<upa::idna::enable_bitmask_operators<E>::value, E&>::type
 operator^=(E& lhs, E rhs) noexcept {
     using underlying = typename std::underlying_type<E>::type;
     lhs = static_cast<E>(
