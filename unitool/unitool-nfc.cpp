@@ -3,14 +3,15 @@
 // found in the LICENSE file.
 //
 #include "unicode_data_tools.h"
+#include <filesystem>
 #include <unordered_set>
 
 using namespace upa::tools;
 
 
 static void output_newline(std::ostream& fout_h, std::ostream& fout_cpp);
-static void make_ccc_table(const std::string& data_path, std::ostream& fout_h, std::ostream& fout_cpp);
-static void make_composition_tables(const std::string& data_path, std::ostream& fout_h, std::ostream& fout_cpp);
+static void make_ccc_table(const std::filesystem::path& data_path, std::ostream& fout_h, std::ostream& fout_cpp);
+static void make_composition_tables(const std::filesystem::path& data_path, std::ostream& fout_h, std::ostream& fout_cpp);
 
 int main(int argc, char* argv[])
 {
@@ -25,22 +26,18 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    // Append '/' to data_path
-    std::string data_path{ argv[1] };
-    if (data_path.length() > 0) {
-        char c = data_path[data_path.length() - 1];
-        if (c != '\\' && c != '/') data_path += '/';
-    }
+    // Data files path
+    const std::filesystem::path data_path{ argv[1] };
 
     // Output files
-    auto file_name = data_path + "GEN-nfc-tables.h.txt";
+    auto file_name = data_path / "GEN-nfc-tables.h.txt";
     std::ofstream fout_h(file_name, std::ios_base::out);
     if (!fout_h.is_open()) {
         std::cerr << "Can't open destination file: " << file_name << std::endl;
         return 2;
     }
 
-    file_name = data_path + "GEN-nfc-tables.cpp.txt";
+    file_name = data_path / "GEN-nfc-tables.cpp.txt";
     std::ofstream fout_cpp(file_name, std::ios_base::out);
     if (!fout_cpp.is_open()) {
         std::cerr << "Can't open destination file: " << file_name << std::endl;
@@ -63,7 +60,7 @@ static void output_newline(std::ostream& fout_h, std::ostream& fout_cpp)
 // ==================================================================
 // Canonical_Combining_Class (ccc)
 
-static void make_ccc_table(const std::string& data_path, std::ostream& fout_h, std::ostream& fout_cpp)
+static void make_ccc_table(const std::filesystem::path& data_path, std::ostream& fout_h, std::ostream& fout_cpp)
 {
     using item_type = std::uint8_t;
     using item_num_type = item_type;
@@ -72,7 +69,7 @@ static void make_ccc_table(const std::string& data_path, std::ostream& fout_h, s
 
     std::vector<item_type> arr_ccc(MAX_CODE_POINT + 1);
 
-    std::string file_name = data_path + "DerivedCombiningClass.txt";
+    auto file_name = data_path / "DerivedCombiningClass.txt";
     parse_UnicodeData<1>(file_name,
         [&](int cp0, int cp1, const auto& col) {
             const std::uint8_t value = std::stoi(col[0]);
@@ -161,7 +158,7 @@ inline bool operator==(const codepoint_key_val& lhs, const codepoint_key_val& rh
 }
 
 
-static void make_composition_tables(const std::string& data_path, std::ostream& fout_h, std::ostream& fout_cpp)
+static void make_composition_tables(const std::filesystem::path& data_path, std::ostream& fout_h, std::ostream& fout_cpp)
 {
     using item_num_type = uint16_t;
     struct item_type {
@@ -187,7 +184,7 @@ static void make_composition_tables(const std::string& data_path, std::ostream& 
 
     std::vector<decomp_item_type> arr_decomp(MAX_CODE_POINT + 1);
 
-    std::string file_name = data_path + "UnicodeData.txt";
+    auto file_name = data_path / "UnicodeData.txt";
     parse_UnicodeData<5>(file_name,
         [&](int cp0, int cp1, const auto& col) {
             // https://www.unicode.org/reports/tr44/#Character_Decomposition_Mappings
@@ -209,7 +206,7 @@ static void make_composition_tables(const std::string& data_path, std::ostream& 
     {
         // Full composition exclusion
         std::unordered_set<char32_t> composition_exclusion;
-        file_name = data_path + "DerivedNormalizationProps.txt";
+        file_name = data_path / "DerivedNormalizationProps.txt";
         parse_UnicodeData<1>(file_name,
             [&](int cp0, int cp1, const auto& col) {
                 if (col[0] == "Full_Composition_Exclusion") {

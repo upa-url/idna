@@ -5,6 +5,7 @@
 #include "upa/idna/nfc.h"
 
 #include "../unitool/unicode_data_tools.h"
+#include <filesystem>
 #include <limits>
 
 template <class CharT, class Traits>
@@ -14,7 +15,7 @@ inline std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, T
 
 using namespace upa::tools;
 
-static int run_nfc_tests(const char* file_name);
+static int run_nfc_tests(const std::filesystem::path& file_name);
 
 int main()
 {
@@ -45,7 +46,7 @@ inline std::u32string toNFD(std::u32string str)
     return str;
 }
 
-static int run_nfc_tests(const char* file_name)
+static int run_nfc_tests(const std::filesystem::path& file_name)
 {
     DataDrivenTest ddt;
     ddt.config_show_passed(false);
@@ -114,7 +115,7 @@ inline std::basic_ostream<CharT, Traits>& output_str(std::basic_ostream<CharT, T
             os << "\\x";
             auto flags_save = os.flags();
             auto fill_save = os.fill('0');
-            os << std::hex << std::uppercase << std::setw(width) << ch;
+            os << std::hex << std::uppercase << std::setw(width) << static_cast<std::uint32_t>(ch);
             os.fill(fill_save);
             os.flags(flags_save);
         }

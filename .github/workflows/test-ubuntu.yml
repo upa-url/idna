@@ -2,7 +2,7 @@ name: Ubuntu
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, 'v[0-9]+.x' ]
     paths-ignore: [ '**.md' ]
   pull_request:
     paths-ignore: [ '**.md' ]
@@ -14,24 +14,24 @@ jobs:
     strategy:
       matrix:
         include:
-          - name: clang++ C++11
-            cxx_compiler: clang++
-            cxx_standard: 11
-            cmake_options: ""
-
           - name: clang++ C++17
             cxx_compiler: clang++
             cxx_standard: 17
             cmake_options: ""
 
-          - name: g++ C++11
-            cxx_compiler: g++
-            cxx_standard: 11
+          - name: clang++ C++20
+            cxx_compiler: clang++
+            cxx_standard: 20
             cmake_options: ""
 
           - name: g++ C++17
             cxx_compiler: g++
             cxx_standard: 17
+            cmake_options: ""
+
+          - name: g++ C++20
+            cxx_compiler: g++
+            cxx_standard: 20
             cmake_options: ""
 
     steps:

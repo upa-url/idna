@@ -8,9 +8,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace upa { // NOLINT(modernize-concat-nested-namespaces)
-namespace idna { // NOLINT(modernize-concat-nested-namespaces)
-namespace util {
+namespace upa::idna::util {
 
 // ASCII
 const std::uint8_t AC_VALID = 0x01;
@@ -62,11 +60,11 @@ extern const std::uint8_t asciiData[128];
 // END-GENERATED
 
 
-inline std::uint32_t getStatusMask(bool useSTD3ASCIIRules) {
+constexpr std::uint32_t getStatusMask(bool useSTD3ASCIIRules) noexcept {
     return useSTD3ASCIIRules ? (0x0007 << 16) : (0x0003 << 16);
 }
 
-inline std::uint32_t getValidMask(bool useSTD3ASCIIRules, bool transitional) {
+constexpr std::uint32_t getValidMask(bool useSTD3ASCIIRules, bool transitional) noexcept {
     const std::uint32_t status_mask = getStatusMask(useSTD3ASCIIRules);
     // (CP_DEVIATION = CP_VALID | CP_MAPPED) & ~CP_MAPPED ==> CP_VALID
     return transitional ? status_mask : (status_mask & ~CP_MAPPED);
@@ -102,8 +100,6 @@ inline std::size_t apply_mapping(uint32_t val, StrT& output) {
     return 0;
 }
 
-} // namespace util
-} // namespace idna
-} // namespace upa
+} // namespace upa::idna::util
 
 #endif // UPA_IDNA_IDNA_TABLE_H

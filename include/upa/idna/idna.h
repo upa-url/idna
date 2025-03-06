@@ -13,8 +13,7 @@
 #include <string>
 #include <type_traits> // std::make_unsigned
 
-namespace upa { // NOLINT(modernize-concat-nested-namespaces)
-namespace idna {
+namespace upa::idna {
 
 enum class Option {
     Default           = 0,
@@ -28,31 +27,24 @@ enum class Option {
     InputASCII        = 0x1000,
 };
 
-} // namespace idna
-} // namespace upa
-
-// enable bit mask operators on upa::idna::Option
 template<>
-struct enable_bitmask_operators<upa::idna::Option> {
-    static const bool enable = true;
-};
+struct enable_bitmask_operators<Option> : public std::true_type {};
 
-namespace upa { // NOLINT(modernize-concat-nested-namespaces)
-namespace idna {
+
 namespace detail {
 
 // Bit flags
-inline bool has(Option option, const Option value) {
+constexpr bool has(Option option, const Option value) noexcept {
     return (option & value) == value;
 }
 
-inline Option domain_options(bool be_strict, bool is_input_ascii) {
+constexpr Option domain_options(bool be_strict, bool is_input_ascii) noexcept {
     // https://url.spec.whatwg.org/#concept-domain-to-ascii
     // https://url.spec.whatwg.org/#concept-domain-to-unicode
     // Note. The to_unicode ignores Option::VerifyDnsLength
-    auto options = be_strict
-        ? Option::CheckBidi | Option::CheckJoiners | Option::UseSTD3ASCIIRules | Option::VerifyDnsLength
-        : Option::CheckBidi | Option::CheckJoiners;
+    auto options = Option::CheckBidi | Option::CheckJoiners;
+    if (be_strict)
+        options |= Option::CheckHyphens | Option::UseSTD3ASCIIRules | Option::VerifyDnsLength;
     if (is_input_ascii)
         options |= Option::InputASCII;
     return options;
@@ -66,7 +58,7 @@ constexpr char ascii_to_lower_char(CharT c) noexcept {
 // IDNA map and normalize NFC
 template <typename CharT>
 inline bool map(std::u32string& mapped, const CharT* input, const CharT* input_end, Option options, bool is_to_ascii) {
-    using UCharT = typename std::make_unsigned<CharT>::type;
+    using UCharT = std::make_unsigned_t<CharT>;
 
     // P1 - Map
     if (has(options, Option::InputASCII)) {
@@ -245,7 +237,6 @@ inline unsigned unicode_version() {
 }
 
 
-} // namespace idna
-} // namespace upa
+} // namespace upa::idna
 
 #endif // UPA_IDNA_IDNA_H

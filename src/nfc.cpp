@@ -5,11 +5,10 @@
 #include "upa/idna/nfc.h"
 #include "nfc_table.h"
 #include <algorithm>
-#include <iterator>
+#include <utility> // std::move
 
 
-namespace upa { // NOLINT(modernize-concat-nested-namespaces)
-namespace idna {
+namespace upa::idna {
 
 namespace hangul {
     constexpr char32_t SBase = 0xAC00;
@@ -154,11 +153,8 @@ void normalize_nfc(std::u32string& str) {
 bool is_normalized_nfc(const char32_t* first, const char32_t* last) {
     std::u32string str{ first, last };
     normalize_nfc(str);
-    return
-        std::distance(first, last) == str.length() &&
-        std::equal(first, last, str.data());
+    return std::equal(first, last, str.data(), str.data() + str.length());
 }
 
 
-} // namespace idna
-} // namespace upa
+} // namespace upa::idna

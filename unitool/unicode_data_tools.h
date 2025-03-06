@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <array>
 #include <cstdint>
+#include <filesystem>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -170,7 +171,7 @@ inline void output_unsigned_constant(std::ostream& out, const char* name, T valu
 // Parse input file
 
 template <int cols_count, class OutputFun>
-inline void parse_UnicodeData(const std::string& file_name, OutputFun outputFun)
+inline void parse_UnicodeData(const std::filesystem::path& file_name, OutputFun outputFun)
 {
     std::cout << "FILE: " << file_name << std::endl;
     std::ifstream file(file_name, std::ios_base::in);

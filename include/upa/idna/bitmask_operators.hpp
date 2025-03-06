@@ -1,5 +1,5 @@
-#ifndef JSS_BITMASK_HPP
-#define JSS_BITMASK_HPP
+#ifndef UPA_IDNA_BITMASK_OPERATORS_HPP
+#define UPA_IDNA_BITMASK_OPERATORS_HPP
 
 // (C) Copyright 2015 Just Software Solutions Ltd
 //
@@ -35,68 +35,73 @@
 
 #include<type_traits>
 
-template<typename E>
-struct enable_bitmask_operators{
-    static const bool enable=false;
-};
+namespace upa::idna {
 
 template<typename E>
-typename std::enable_if<enable_bitmask_operators<E>::enable,E>::type
-operator|(E lhs,E rhs){
-    typedef typename std::underlying_type<E>::type underlying;
+struct enable_bitmask_operators : public std::false_type {};
+
+template<typename E>
+constexpr bool enable_bitmask_operators_v = enable_bitmask_operators<E>::value;
+
+} // namespace upa::idna
+
+template<typename E>
+constexpr std::enable_if_t<upa::idna::enable_bitmask_operators_v<E>, E>
+operator|(E lhs, E rhs) noexcept {
+    using underlying = std::underlying_type_t<E>;
     return static_cast<E>(
         static_cast<underlying>(lhs) | static_cast<underlying>(rhs));
 }
 
 template<typename E>
-typename std::enable_if<enable_bitmask_operators<E>::enable,E>::type
-operator&(E lhs,E rhs){
-    typedef typename std::underlying_type<E>::type underlying;
+constexpr std::enable_if_t<upa::idna::enable_bitmask_operators_v<E>, E>
+operator&(E lhs, E rhs) noexcept {
+    using underlying = std::underlying_type_t<E>;
     return static_cast<E>(
         static_cast<underlying>(lhs) & static_cast<underlying>(rhs));
 }
 
 template<typename E>
-typename std::enable_if<enable_bitmask_operators<E>::enable,E>::type
-operator^(E lhs,E rhs){
-    typedef typename std::underlying_type<E>::type underlying;
+constexpr std::enable_if_t<upa::idna::enable_bitmask_operators_v<E>, E>
+operator^(E lhs, E rhs) noexcept {
+    using underlying = std::underlying_type_t<E>;
     return static_cast<E>(
         static_cast<underlying>(lhs) ^ static_cast<underlying>(rhs));
 }
 
 template<typename E>
-typename std::enable_if<enable_bitmask_operators<E>::enable,E>::type
-operator~(E lhs){
-    typedef typename std::underlying_type<E>::type underlying;
+constexpr std::enable_if_t<upa::idna::enable_bitmask_operators_v<E>, E>
+operator~(E lhs) noexcept {
+    using underlying = std::underlying_type_t<E>;
     return static_cast<E>(
         ~static_cast<underlying>(lhs));
 }
 
 template<typename E>
-typename std::enable_if<enable_bitmask_operators<E>::enable,E&>::type
-operator|=(E& lhs,E rhs){
-    typedef typename std::underlying_type<E>::type underlying;
-    lhs=static_cast<E>(
+constexpr std::enable_if_t<upa::idna::enable_bitmask_operators_v<E>, E&>
+operator|=(E& lhs, E rhs) noexcept {
+    using underlying = std::underlying_type_t<E>;
+    lhs = static_cast<E>(
         static_cast<underlying>(lhs) | static_cast<underlying>(rhs));
     return lhs;
 }
 
 template<typename E>
-typename std::enable_if<enable_bitmask_operators<E>::enable,E&>::type
-operator&=(E& lhs,E rhs){
-    typedef typename std::underlying_type<E>::type underlying;
-    lhs=static_cast<E>(
+constexpr std::enable_if_t<upa::idna::enable_bitmask_operators_v<E>, E&>
+operator&=(E& lhs, E rhs) noexcept {
+    using underlying = std::underlying_type_t<E>;
+    lhs = static_cast<E>(
         static_cast<underlying>(lhs) & static_cast<underlying>(rhs));
     return lhs;
 }
 
 template<typename E>
-typename std::enable_if<enable_bitmask_operators<E>::enable,E&>::type
-operator^=(E& lhs,E rhs){
-    typedef typename std::underlying_type<E>::type underlying;
-    lhs=static_cast<E>(
+constexpr std::enable_if_t<upa::idna::enable_bitmask_operators_v<E>, E&>
+operator^=(E& lhs, E rhs) noexcept {
+    using underlying = std::underlying_type_t<E>;
+    lhs = static_cast<E>(
         static_cast<underlying>(lhs) ^ static_cast<underlying>(rhs));
     return lhs;
 }
 
-#endif
+#endif // UPA_IDNA_BITMASK_OPERATORS_HPP

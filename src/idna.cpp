@@ -12,8 +12,7 @@
 #include <stdexcept>
 #include <string>
 
-namespace upa { // NOLINT(modernize-concat-nested-namespaces)
-namespace idna {
+namespace upa::idna {
 namespace {
 
 // Split
@@ -366,5 +365,4 @@ bool to_unicode_mapped(std::u32string& domain, const std::u32string& mapped, Opt
 
 
 } // namespace detail
-} // namespace idna
-} // namespace upa
+} // namespace upa::idna
