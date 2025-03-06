@@ -53,9 +53,11 @@ bool processing_mapped(std::u32string* pdecoded, const std::u32string& mapped, O
         // P4 - Convert/Validate
         if (label_end - label >= 4 && label[0] == 'x' && label[1] == 'n' && label[2] == '-' && label[3] == '-') {
             if (*(label_end - 1) == '-' && label_end - label != 5) {
-                // For compatibility with ICU, report errors on "xn--" or "xn--ascii-" labels.
-                // Ignore "xn---", it will fail punycode::decode.
-                // More info: https://github.com/whatwg/url/issues/760#issuecomment-1462706617
+                // > 4. Processing - 4. - 3. If (after Punycode decode) the label is empty, or if the label
+                // > contains only ASCII code points, record that there was an error.
+                // 1) "xn--" is decoded to empty label
+                // 2) "xn--ascii-" is decoded to "ascii"
+                // Note: "xn---" is ignored here, because it will fail punycode::decode
                 error = true;
                 // Decode "xn--ascii-" to "ascii" for to_unicode:
                 if (pdecoded && label_end - label > 5) {
@@ -302,7 +304,6 @@ bool to_ascii_mapped(std::string& domain, const std::u32string& mapped, Option o
 
     // A2 - Break the result into labels at U+002E FULL STOP
     if (mapped.length() == 0) {
-        // to simplify root label detection
         if (detail::has(options, Option::VerifyDnsLength))
             ok = false;
     } else {
@@ -311,9 +312,6 @@ bool to_ascii_mapped(std::string& domain, const std::u32string& mapped, Option o
         std::size_t domain_len = domain.length() + static_cast<std::size_t>(-1);
         bool first_label = true;
         split(first, last, 0x002E, [&](const char32_t* label, const char32_t* label_end) {
-            // root is ending empty label
-            const bool is_root = (label == last);
-
             // join
             if (first_label) {
                 first_label = false;
@@ -341,7 +339,7 @@ bool to_ascii_mapped(std::string& domain, const std::u32string& mapped, Option o
             }
 
             // A4 - DNS length restrictions
-            if (detail::has(options, Option::VerifyDnsLength) && !is_root) {
+            if (detail::has(options, Option::VerifyDnsLength)) {
                 const std::size_t label_length = domain.length() - label_start_ind;
                 // A4_2
                 if (label_length < 1 || label_length > 63)

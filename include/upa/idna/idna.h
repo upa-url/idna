@@ -1,4 +1,4 @@
-// Copyright 2017-2024 Rimas Misevičius
+// Copyright 2017-2025 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -7,9 +7,9 @@
 
 #include "bitmask_operators.hpp"
 #include "idna_table.h"
+#include "idna_version.h" // IWYU pragma: export
 #include "iterate_utf.h"
 #include "nfc.h"
-#include <algorithm>
 #include <string>
 #include <type_traits> // std::make_unsigned
 
@@ -111,13 +111,11 @@ inline bool map(std::u32string& mapped, const CharT* input, const CharT* input_e
                 }
                 break;
             default:
-                // CP_DISALLOWED
-                // CP_NO_STD3_MAPPED, CP_NO_STD3_VALID if Option::UseSTD3ASCIIRules
-                // Starting with Unicode 15.1.0 - don't record an error
+                // CP_DISALLOWED or
+                // CP_NO_STD3_VALID if Option::UseSTD3ASCIIRules
+                // Starting with Unicode 15.1.0 don't record an error
                 if (is_to_ascii && // to_ascii optimization
-                    ((value & util::CP_DISALLOWED_STD3) == 0
-                    ? !std::binary_search(std::begin(util::comp_disallowed), std::end(util::comp_disallowed), cp)
-                    : !std::binary_search(std::begin(util::comp_disallowed_std3), std::end(util::comp_disallowed_std3), cp)))
+                    ((value & util::CP_DISALLOWED_STD3) == 0 || cp > 0x3E || cp < 0x3C))
                     return false;
                 mapped.push_back(cp);
                 break;
@@ -235,7 +233,7 @@ constexpr unsigned make_unicode_version(unsigned n1, unsigned n2 = 0,
 /// @return encoded Unicode version
 /// @see make_unicode_version
 inline unsigned unicode_version() {
-    return make_unicode_version(15, 1);
+    return make_unicode_version(16);
 }
 
 

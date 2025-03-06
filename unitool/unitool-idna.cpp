@@ -112,18 +112,12 @@ void make_mapping_table(const std::filesystem::path& data_path) {
             has_mapped = true;
         } else if (col[0] == "valid") {
             state = CP_VALID;
-        } else if (col[0] == "disallowed_STD3_mapped") {
-            state = CP_NO_STD3_MAPPED;
-            has_mapped = true;
-        } else if (col[0] == "disallowed_STD3_valid") {
-            state = CP_NO_STD3_VALID;
         } else {
             // TODO: throw
             std::cerr << "Unknown state: " << col[0] << std::endl;
         }
 
         // mapped to
-        uint32_t value = 0;
         string_to_t charsTo;
         if (has_mapped && col[1].length() > 0) {
             // parse col[1]
@@ -157,8 +151,16 @@ void make_mapping_table(const std::filesystem::path& data_path) {
         }
 
         // put value
-        value |= state;
         for (int cp = cp0; cp <= cp1; cp++) {
+            uint32_t value = state;
+            // Allowed STD3 characters, see "Validity Criteria" 7.3. in
+            // https://www.unicode.org/reports/tr46/tr46-33.html#Validity_Criteria
+            // If the code point is an ASCII code point (U+0000..U+007F), then it must
+            // be a lowercase letter (a-z), a digit (0-9), or a hyphen-minus (U+002D)
+            if (cp <= 0x7F && value == CP_VALID &&
+                !((cp >= 'a' && cp <= 'z') || (cp >= '0' && cp <= '9') || cp == 0x2D || cp == 0x2E)) {
+                value = CP_NO_STD3_VALID;
+            }
             arrChars[cp].value = value;
             arrChars[cp].charsTo = charsTo;
         }
@@ -231,7 +233,6 @@ void make_mapping_table(const std::filesystem::path& data_path) {
         }
     });
 
-#if 1
     // DerivedCombiningClass.txt
     file_name = data_path / "DerivedCombiningClass.txt";
     parse_UnicodeData<1>(file_name, [&](int cp0, int cp1, const auto& col) {
@@ -299,7 +300,6 @@ void make_mapping_table(const std::filesystem::path& data_path) {
             }
         }
     });
-#endif
 
     //=======================================================================
     // Output Data
@@ -557,23 +557,29 @@ void make_comp_disallowed_tables(const std::filesystem::path& data_path,
         }
     }
 
-    fout_head << "extern const std::uint32_t comp_disallowed[" << comp_disallowed.size() << "];\n";
-    fout << "const std::uint32_t comp_disallowed[" << comp_disallowed.size() << "] = {";
-    {
-        OutputFmt outfmt(fout, 100);
-        for (auto ch : comp_disallowed) {
-            outfmt.output(ch, 16);
+    if (!comp_disallowed.empty()) {
+        fout_head << "extern const std::uint32_t comp_disallowed[" << comp_disallowed.size() << "];\n";
+        fout << "const std::uint32_t comp_disallowed[" << comp_disallowed.size() << "] = {";
+        {
+            OutputFmt outfmt(fout, 100);
+            for (auto ch : comp_disallowed) {
+                outfmt.output(ch, 16);
+            }
         }
+        fout << "};\n\n";
     }
-    fout << "};\n\n";
 
-    fout_head << "extern const std::uint32_t comp_disallowed_std3[" << comp_disallowed_std3.size() << "];\n";
-    fout << "const std::uint32_t comp_disallowed_std3[" << comp_disallowed_std3.size() << "] = {";
-    {
-        OutputFmt outfmt(fout, 100);
-        for (auto ch : comp_disallowed_std3) {
-            outfmt.output(ch, 16);
+    if (!comp_disallowed_std3.empty()) {
+        // Starting with Unicode 16.0.0, disallowed STD3 characters are in the ASCII range.
+        // See "Validity Criteria" 7.3. in https://www.unicode.org/reports/tr46/tr46-33.html#Validity_Criteria
+        fout_head << "extern const std::uint8_t comp_disallowed_std3[" << comp_disallowed_std3.size() << "];\n";
+        fout << "const std::uint8_t comp_disallowed_std3[" << comp_disallowed_std3.size() << "] = {";
+        {
+            OutputFmt outfmt(fout, 100);
+            for (auto ch : comp_disallowed_std3) {
+                outfmt.output(ch, 16);
+            }
         }
+        fout << "};\n\n";
     }
-    fout << "};\n\n";
 }

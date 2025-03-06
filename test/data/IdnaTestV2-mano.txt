@@ -1,4 +1,4 @@
-a.xn--.c; a..c; [XX]; ; ; ;
+a.xn--.c; a..c; [P4]; ; [P4, A4_2]; ;
 a.xn---.c; a.xn---.c; [P4]; ; ; ;
-a.xn--ASCII-.c; a.ascii.c; [XX]; ; ; ;
+a.xn--ASCII-.c; a.ascii.c; [P4]; ; ; ;
 a.xn--ĄŽUOLAS-.c; a.xn--ąžuolas-.c; [P4]; ; ; ;
