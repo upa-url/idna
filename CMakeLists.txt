@@ -2,8 +2,16 @@ cmake_minimum_required(VERSION 3.7)
 
 set(CMAKE_SUPPRESS_REGENERATION true)
 
+# Extract version from idna_version.h
+file(READ include/upa/idna/idna_version.h upa_idna_version_h)
+if (NOT upa_idna_version_h MATCHES "[ \t]+UPA_IDNA_VERSION[ \t]+\"([0-9]+(\.[0-9]+)+)\"")
+  message(FATAL_ERROR "Cannot get UPA_IDNA_VERSION from idna_version.h")
+endif()
+set(UPA_IDNA_VERSION ${CMAKE_MATCH_1})
+message(STATUS "Upa IDNA version: ${UPA_IDNA_VERSION}")
+
 # Project settings
-project(test_idna LANGUAGES CXX)
+project(test_idna VERSION ${UPA_IDNA_VERSION} LANGUAGES CXX)
 
 if (NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 17)
