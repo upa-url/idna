@@ -1,4 +1,4 @@
-// Copyright 2017-2024 Rimas Misevičius
+// Copyright 2017-2025 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -84,8 +84,6 @@ static void make_comp_disallowed_tables(const std::filesystem::path& data_path,
     std::ostream& fout_head, std::ostream& fout);
 
 void make_mapping_table(const std::filesystem::path& data_path) {
-    const int MAX_CODE_POINT = 0x10FFFF;
-
     // XXX: intentional memory leak to speed up program exit
     std::vector<char_item>& arrChars(*new std::vector<char_item>(MAX_CODE_POINT + 1));
 

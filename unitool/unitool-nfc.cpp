@@ -1,4 +1,4 @@
-// Copyright 2017-2024 Rimas Misevičius
+// Copyright 2017-2025 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -64,8 +64,6 @@ static void make_ccc_table(const std::filesystem::path& data_path, std::ostream&
 {
     using item_type = std::uint8_t;
     using item_num_type = item_type;
-
-    const int MAX_CODE_POINT = 0x10FFFF;
 
     std::vector<item_type> arr_ccc(MAX_CODE_POINT + 1);
 
@@ -179,8 +177,6 @@ static void make_composition_tables(const std::filesystem::path& data_path, std:
     struct decomp_item_type : public item_type {
         std::u32string charsTo;
     };
-
-    constexpr int MAX_CODE_POINT = 0x10FFFF;
 
     std::vector<decomp_item_type> arr_decomp(MAX_CODE_POINT + 1);
 
