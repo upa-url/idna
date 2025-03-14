@@ -12,6 +12,7 @@ using namespace upa::tools;
 static void output_newline(std::ostream& fout_h, std::ostream& fout_cpp);
 static void make_ccc_table(const std::filesystem::path& data_path, std::ostream& fout_h, std::ostream& fout_cpp);
 static void make_composition_tables(const std::filesystem::path& data_path, std::ostream& fout_h, std::ostream& fout_cpp);
+static void make_quick_check_table(const std::filesystem::path& data_path, std::ostream& fout_h, std::ostream& fout_cpp);
 
 int main(int argc, char* argv[])
 {
@@ -47,6 +48,8 @@ int main(int argc, char* argv[])
     make_ccc_table(data_path, fout_h, fout_cpp);
     output_newline(fout_h, fout_cpp);
     make_composition_tables(data_path, fout_h, fout_cpp);
+    output_newline(fout_h, fout_cpp);
+    make_quick_check_table(data_path, fout_h, fout_cpp);
 
     return 0;
 }
@@ -76,7 +79,7 @@ static void make_ccc_table(const std::filesystem::path& data_path, std::ostream&
         });
 
     // Special ranges to reduce table size
-    special_ranges<item_num_type> spec_ccc(arr_ccc, 0);
+    special_ranges<item_num_type> spec_ccc(arr_ccc);
     const std::size_t count_chars = spec_ccc.m_range[0].from; // MAX_CODE_POINT + 1;
     const int index_levels = 1; // 1 arba 2
 
@@ -451,6 +454,109 @@ static void make_composition_tables(const std::filesystem::path& data_path, std:
             OutputFmt outfmt(fout_cpp, 100);
             for (auto ch : allCharsTo) {
                 outfmt.output(ch, 16);
+            }
+        }
+        fout_cpp << "};\n\n";
+    }
+}
+
+// ==================================================================
+// Quick Check (NFC_QC) data
+
+static void make_quick_check_table(const std::filesystem::path& data_path, std::ostream& fout_h, std::ostream& fout_cpp)
+{
+    using item_type = std::uint8_t;
+    using item_num_type = item_type;
+
+    constexpr std::uint8_t NO = 1;
+    constexpr std::uint8_t YES = 0;
+    constexpr std::uint8_t MAYBE = 2;
+
+    std::vector<item_type> arr_quick_check((MAX_CODE_POINT + 1) / 4);
+
+    auto file_name = data_path / "DerivedNormalizationProps.txt";
+    parse_UnicodeData<2>(file_name,
+        [&](int cp0, int cp1, const auto& col) {
+            if (col[0] == "NFC_QC") {
+                std::uint8_t val = YES;
+                if (col[1] == "N") val = NO;
+                else if (col[1] == "M") val = MAYBE;
+
+                for (auto cp = cp0; cp <= cp1; ++cp) {
+                    auto ind = cp / 4;
+                    auto shift = (cp % 4) * 2;
+                    arr_quick_check[ind] |= val << shift;
+                }
+            }
+        });
+
+    // Special ranges to reduce table size
+    special_ranges<item_num_type> spec_quick_check(arr_quick_check);
+    const std::size_t count_items = spec_quick_check.m_range[0].from; // (MAX_CODE_POINT + 1) / 4;
+    const int index_levels = 1; // 1 or 2
+
+    // Find block size
+    const auto binf = find_block_size(arr_quick_check, count_items, sizeof(item_num_type), index_levels);
+    const std::size_t block_size = binf.block_size;
+
+    // memory used
+    std::cout << "block_size=" << block_size << "; mem=" << binf.total_mem() << "\n";
+
+    //=======================================================================
+    // Generate code
+
+    const char* sz_item_num_type = getUIntType<item_num_type>();
+
+    // Constants
+    fout_h <<
+        "enum class qc : std::uint8_t {\n"
+        "    no = " << int(NO) << ",\n"
+        "    yes = " << int(YES) << ",\n"
+        "    maybe = " << int(MAYBE) << ",\n"
+        "};\n";
+    output_unsigned_constant(fout_h, "std::size_t", "quick_check_block_shift", binf.size_shift, 10);
+    output_unsigned_constant(fout_h, "std::uint32_t", "quick_check_block_mask", binf.code_point_mask(), 16);
+    output_unsigned_constant(fout_h, "std::uint32_t", "quick_check_default_start", count_items, 16);
+    output_unsigned_constant(fout_h, sz_item_num_type, "quick_check_default_value", arr_quick_check[count_items], 16);
+
+    // quick_check blocks
+    std::vector<int> block_index;
+
+    fout_h << "extern const " << sz_item_num_type << " quick_check_block[];\n";
+    fout_cpp << "const " << sz_item_num_type << " quick_check_block[] = {";
+    {
+        OutputFmt outfmt(fout_cpp, 100);
+
+        typedef std::map<array_view<item_type>, int> BlokcsMap;
+        BlokcsMap blocks;
+        int index = 0;
+        for (std::size_t ind = 0; ind < count_items; ind += block_size) {
+            std::size_t chunk_size = std::min(block_size, arr_quick_check.size() - ind);
+            array_view<item_type> block(arr_quick_check.data() + ind, chunk_size);
+
+            auto res = blocks.insert(BlokcsMap::value_type(block, index));
+            if (res.second) {
+                for (const auto& item : block) {
+                    outfmt.output(static_cast<item_num_type>(item), 16);
+                }
+                block_index.push_back(index);
+                index++;
+            } else {
+                // index of previously inserted block
+                block_index.push_back(res.first->second);
+            }
+        }
+    }
+    fout_cpp << "};\n\n";
+
+    {   // Single level index
+        const char* sztype = getUIntType(block_index);
+        fout_h << "extern const " << sztype << " quick_check_block_index[];\n";
+        fout_cpp << "const " << sztype << " quick_check_block_index[] = {";
+        {
+            OutputFmt outfmt(fout_cpp, 100);
+            for (int index : block_index) {
+                outfmt.output(index, 10);
             }
         }
         fout_cpp << "};\n\n";

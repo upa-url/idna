@@ -1,4 +1,4 @@
-// Copyright 2024 Rimas Misevičius
+// Copyright 2024-2025 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -145,15 +145,47 @@ void canonical_decompose(std::u32string& str)
     str = std::move(out);
 }
 
+namespace {
+
+// Quick Check Algorithm
+// https://unicode.org/reports/tr15/#Detecting_Normalization_Forms
+normalize::qc quick_check(const char32_t* first, const char32_t* last) {
+    std::uint8_t last_canonical_class = 0;
+    auto result = normalize::qc::yes;
+    for (const char32_t* it = first; it != last; ++it) {
+        const char32_t ch = *it;
+        const std::uint8_t canonical_class = normalize::get_ccc(ch);
+        if (last_canonical_class > canonical_class && canonical_class != 0)
+            return normalize::qc::no;
+        const auto check = normalize::get_quick_check(ch);
+        if (check == normalize::qc::no)
+            return normalize::qc::no;
+        if (check == normalize::qc::maybe)
+            result = normalize::qc::maybe;
+        last_canonical_class = canonical_class;
+    }
+    return result;
+}
+
+} // namespace
+
 void normalize_nfc(std::u32string& str) {
-    canonical_decompose(str);
-    compose(str);
+    const auto qc = quick_check(str.data(), str.data() + str.size());
+    if (qc != normalize::qc::yes) {
+        canonical_decompose(str);
+        compose(str);
+    }
 }
 
 bool is_normalized_nfc(const char32_t* first, const char32_t* last) {
-    std::u32string str{ first, last };
-    normalize_nfc(str);
-    return std::equal(first, last, str.data(), str.data() + str.length());
+    const auto qc = quick_check(first, last);
+    if (qc == normalize::qc::maybe) {
+        std::u32string str{ first, last };
+        canonical_decompose(str);
+        compose(str);
+        return std::equal(first, last, str.data(), str.data() + str.length());
+    }
+    return qc == normalize::qc::yes;
 }
 
 

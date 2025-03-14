@@ -1,4 +1,4 @@
-// Copyright 2024 Rimas Misevičius
+// Copyright 2024-2025 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -39,6 +39,18 @@ const std::uint16_t decomp_default_value = 0;
 extern const std::uint16_t decomp_block[];
 extern const std::uint8_t decomp_block_index[];
 extern const char32_t decomp_block_data[];
+
+enum class qc : std::uint8_t {
+    no = 1,
+    yes = 0,
+    maybe = 2,
+};
+const std::size_t quick_check_block_shift = 6;
+const std::uint32_t quick_check_block_mask = 0x3F;
+const std::uint32_t quick_check_default_start = 0xBE88;
+const std::uint8_t quick_check_default_value = 0;
+extern const std::uint8_t quick_check_block[];
+extern const std::uint8_t quick_check_block_index[];
 // END-GENERATED
 
 
@@ -86,6 +98,18 @@ inline std::size_t get_decomposition_len(std::uint16_t di) {
 
 inline const char32_t* get_decomposition_chars(std::uint16_t di) {
     return static_cast<const char32_t*>(decomp_block_data) + (di & 0xFFF);
+}
+
+// Quick Check (NFC_QC)
+inline qc get_quick_check(std::uint32_t cp) {
+    const auto ind = cp >> 2;
+    if (ind >= quick_check_default_start)
+        return static_cast<qc>(quick_check_default_value); // 0
+    const auto shift = (cp & 0x03) << 1;
+    return static_cast<qc>((quick_check_block[
+        (quick_check_block_index[ind >> quick_check_block_shift] << quick_check_block_shift) |
+            (ind & quick_check_block_mask)
+    ] >> shift) & 0x03);
 }
 
 } // namespace upa::idna::normalize
