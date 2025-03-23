@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.7)
+cmake_minimum_required(VERSION 3.7...3.13)
 
 set(CMAKE_SUPPRESS_REGENERATION true)
 
