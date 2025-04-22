@@ -67,7 +67,7 @@ inline bool map(std::u32string& mapped, const CharT* input, const CharT* input_e
         if (has(options, Option::UseSTD3ASCIIRules)) {
             for (const auto* it = input; it != input_end; ++it) {
                 const auto cp = static_cast<UCharT>(*it);
-                switch (util::asciiData[cp]) {
+                switch (util::ascii_data[cp]) {
                 case util::AC_VALID:
                     mapped.push_back(cp);
                     break;

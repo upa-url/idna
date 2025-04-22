@@ -1,4 +1,4 @@
-// Copyright 2017-2024 Rimas Misevičius
+// Copyright 2017-2025 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -42,21 +42,21 @@ const std::uint32_t CAT_Bidi_ES_CS_ET_ON_BN = 0x4000 << 16;
 const std::uint32_t CAT_Bidi_NSM  = 0x8000 << 16;
 
 // BEGIN-GENERATED
-const std::size_t blockShift = 4;
-const std::uint32_t blockMask = 0xF;
-const std::uint32_t defaultStart = 0x323B0;
-const std::uint32_t defaultValue = 0;
-const std::uint32_t specRange1 = 0xE0100;
-const std::uint32_t specRange2 = 0xE01EF;
-const std::uint32_t specValue = 0x20000;
+const std::size_t uni_block_shift = 4;
+const std::uint32_t uni_block_mask = 0xF;
+const std::uint32_t uni_default_start = 0x323B0;
+const std::uint32_t uni_default_value = 0;
+const std::uint32_t uni_spec_range1 = 0xE0100;
+const std::uint32_t uni_spec_range2 = 0xE01EF;
+const std::uint32_t uni_spec_value = 0x20000;
 
-extern const std::uint32_t blockData[];
-extern const std::uint16_t blockIndex[];
-extern const char32_t allCharsTo[];
+extern const std::uint32_t uni_data[];
+extern const std::uint16_t uni_data_index[];
+extern const char32_t uni_chars_to[];
 
 extern const std::uint8_t comp_disallowed_std3[3];
 
-extern const std::uint8_t asciiData[128];
+extern const std::uint8_t ascii_data[128];
 // END-GENERATED
 
 
@@ -71,13 +71,14 @@ constexpr std::uint32_t getValidMask(bool useSTD3ASCIIRules, bool transitional) 
 }
 
 inline std::uint32_t getCharInfo(uint32_t cp) {
-    if (cp >= defaultStart) {
-        if (cp >= specRange1 && cp <= specRange2) {
-            return specValue;
+    if (cp >= uni_default_start) {
+        if (cp >= uni_spec_range1 && cp <= uni_spec_range2) {
+            return uni_spec_value;
         }
-        return defaultValue;
+        return uni_default_value;
     }
-    return blockData[(blockIndex[cp >> blockShift] << blockShift) | (cp & blockMask)];
+    return uni_data[(uni_data_index[cp >> uni_block_shift] << uni_block_shift) |
+        (cp & uni_block_mask)];
 }
 
 template <class StrT>
@@ -93,7 +94,7 @@ inline std::size_t apply_mapping(uint32_t val, StrT& output) {
             len += ind >> 8;
             ind &= 0xFF;
         }
-        const auto* ptr = static_cast<const char32_t*>(allCharsTo) + ind;
+        const auto* ptr = static_cast<const char32_t*>(uni_chars_to) + ind;
         output.append(ptr, len);
         return len;
     }

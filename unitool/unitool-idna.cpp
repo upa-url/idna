@@ -315,7 +315,7 @@ void make_mapping_table(const std::filesystem::path& data_path) {
 
     // total memory used
     std::cout << "block_size=" << block_size << "; mem: " << binf.total_mem() << "\n";
-    std::cout << "allCharsTo size: " << allCharsTo.size() << "; mem: " << allCharsTo.size() * sizeof(allCharsTo[0]) << "\n";
+    std::cout << "uni_chars_to size: " << allCharsTo.size() << "; mem: " << allCharsTo.size() * sizeof(allCharsTo[0]) << "\n";
     std::cout << "TOTAL MEM: " << binf.total_mem() + allCharsTo.size() * sizeof(allCharsTo[0]) << "\n";
 
 #if 0
@@ -345,20 +345,20 @@ void make_mapping_table(const std::filesystem::path& data_path) {
     }
 
     // Constants
-    output_unsigned_constant(fout_head, "std::size_t", "blockShift", binf.size_shift, 10);
-    output_unsigned_constant(fout_head, "std::uint32_t", "blockMask", binf.code_point_mask(), 16);
-    output_unsigned_constant(fout_head, "std::uint32_t", "defaultStart", count_chars, 16);
-    output_unsigned_constant(fout_head, "std::uint32_t", "defaultValue", arrChars[count_chars].value, 16);
-    output_unsigned_constant(fout_head, "std::uint32_t", "specRange1", spec.m_range[1].from /*0xE0100*/, 16);
-    output_unsigned_constant(fout_head, "std::uint32_t", "specRange2", spec.m_range[1].to /*0xE01EF*/, 16);
-    output_unsigned_constant(fout_head, "std::uint32_t", "specValue", arrChars[spec.m_range[1].from].value, 16);
+    output_unsigned_constant(fout_head, "std::size_t", "uni_block_shift", binf.size_shift, 10);
+    output_unsigned_constant(fout_head, "std::uint32_t", "uni_block_mask", binf.code_point_mask(), 16);
+    output_unsigned_constant(fout_head, "std::uint32_t", "uni_default_start", count_chars, 16);
+    output_unsigned_constant(fout_head, "std::uint32_t", "uni_default_value", arrChars[count_chars].value, 16);
+    output_unsigned_constant(fout_head, "std::uint32_t", "uni_spec_range1", spec.m_range[1].from /*0xE0100*/, 16);
+    output_unsigned_constant(fout_head, "std::uint32_t", "uni_spec_range2", spec.m_range[1].to /*0xE01EF*/, 16);
+    output_unsigned_constant(fout_head, "std::uint32_t", "uni_spec_value", arrChars[spec.m_range[1].from].value, 16);
     fout_head << "\n";
     // ---
 
     std::vector<int> blockIndex;
 
-    fout_head << "extern const std::uint32_t blockData[];\n";
-    fout << "const std::uint32_t blockData[] = {";
+    fout_head << "extern const std::uint32_t uni_data[];\n";
+    fout << "const std::uint32_t uni_data[] = {";
     {
         OutputFmt outfmt(fout, 100);
 
@@ -387,8 +387,8 @@ void make_mapping_table(const std::filesystem::path& data_path) {
     if (index_levels == 1) {
         // Vieno lygio indeksas
         const char* sztype = getUIntType(blockIndex);
-        fout_head << "extern const " << sztype << " blockIndex[];\n";
-        fout << "const " << sztype << " blockIndex[] = {";
+        fout_head << "extern const " << sztype << " uni_data_index[];\n";
+        fout << "const " << sztype << " uni_data_index[] = {";
         {
             OutputFmt outfmt(fout, 100);
             for (int index : blockIndex) {
@@ -445,8 +445,8 @@ void make_mapping_table(const std::filesystem::path& data_path) {
     }
 
     const char* sztype = getCharType<char_to_t>();
-    fout_head << "extern const " << sztype << " allCharsTo[];\n";
-    fout << "const " << sztype << " allCharsTo[] = {";
+    fout_head << "extern const " << sztype << " uni_chars_to[];\n";
+    fout << "const " << sztype << " uni_chars_to[] = {";
     {
         OutputFmt outfmt(fout, 100);
         for (auto ch : allCharsTo) {
@@ -461,8 +461,8 @@ void make_mapping_table(const std::filesystem::path& data_path) {
 
     // ASCII data
     fout_head << '\n';
-    fout_head << "extern const std::uint8_t asciiData[128];\n";
-    fout << "const std::uint8_t asciiData[128] = {";
+    fout_head << "extern const std::uint8_t ascii_data[128];\n";
+    fout << "const std::uint8_t ascii_data[128] = {";
     {
         OutputFmt outfmt(fout, 100);
         for (std::uint8_t ch = 0; ch < 128; ++ch) {
