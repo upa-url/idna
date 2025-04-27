@@ -14,10 +14,10 @@ jobs:
     strategy:
       matrix:
         include:
-          - name: clang++ C++17
+          - name: clang++ C++17 shared-lib
             cxx_compiler: clang++
             cxx_standard: 17
-            cmake_options: ""
+            cmake_options: "-DBUILD_SHARED_LIBS=ON"
 
           - name: clang++ C++20
             cxx_compiler: clang++
