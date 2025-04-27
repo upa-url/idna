@@ -6,6 +6,7 @@
 #define UPA_IDNA_IDNA_H
 
 #include "bitmask_operators.hpp"
+#include "config.h" // IWYU pragma: export
 #include "idna_table.h"
 #include "idna_version.h" // IWYU pragma: export
 #include "iterate_utf.h"
@@ -129,8 +130,8 @@ inline bool map(std::u32string& mapped, const CharT* input, const CharT* input_e
     return true;
 }
 
-bool to_ascii_mapped(std::string& domain, const std::u32string& mapped, Option options);
-bool to_unicode_mapped(std::u32string& domain, const std::u32string& mapped, Option options);
+UPA_IDNA_API bool to_ascii_mapped(std::string& domain, const std::u32string& mapped, Option options);
+UPA_IDNA_API bool to_unicode_mapped(std::u32string& domain, const std::u32string& mapped, Option options);
 
 } // namespace detail
 
