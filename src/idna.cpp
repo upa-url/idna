@@ -3,7 +3,8 @@
 // found in the LICENSE file.
 //
 #include "upa/idna/idna.h"
-#include "upa/idna/idna_table.h"
+#include "idna_table.h"
+#include "iterate_utf.h"
 #include "upa/idna/nfc.h"
 #include "upa/idna/punycode.h"
 
@@ -11,6 +12,7 @@
 #include <iterator>
 #include <stdexcept>
 #include <string>
+#include <type_traits> // std::make_unsigned
 
 namespace upa::idna {
 namespace {
@@ -297,9 +299,92 @@ inline void str_append(std::string& dest, InputIt first, InputIt last) {
 
 namespace detail {
 
+template <typename CharT>
+constexpr char ascii_to_lower_char(CharT c) noexcept {
+    return static_cast<char>((c <= 'Z' && c >= 'A') ? (c | 0x20) : c);
+}
+
+// IDNA map and normalize to NFC
+
+template <typename CharT>
+bool map(std::u32string& mapped, const CharT* input, const CharT* input_end, Option options, bool is_to_ascii) {
+    using UCharT = std::make_unsigned_t<CharT>;
+
+    // P1 - Map
+    if (has(options, Option::InputASCII)) {
+        // The input is in ASCII and can contain `xn--` labels
+        mapped.reserve(input_end - input);
+        if (has(options, Option::UseSTD3ASCIIRules)) {
+            for (const auto* it = input; it != input_end; ++it) {
+                const auto cp = static_cast<UCharT>(*it);
+                switch (util::ascii_data[cp]) {
+                case util::AC_VALID:
+                    mapped.push_back(cp);
+                    break;
+                case util::AC_MAPPED:
+                    mapped.push_back(cp | 0x20);
+                    break;
+                default:
+                    // util::AC_DISALLOWED_STD3
+                    if (is_to_ascii)
+                        return false;
+                    mapped.push_back(cp);
+                }
+            }
+        } else {
+            for (const auto* it = input; it != input_end; ++it)
+                mapped.push_back(ascii_to_lower_char(*it));
+        }
+    } else {
+        const uint32_t status_mask = util::getStatusMask(has(options, Option::UseSTD3ASCIIRules));
+        for (auto it = input; it != input_end; ) {
+            const uint32_t cp = util::getCodePoint(it, input_end);
+            const uint32_t value = util::getCharInfo(cp);
+
+            switch (value & status_mask) {
+            case util::CP_VALID:
+                mapped.push_back(cp);
+                break;
+            case util::CP_MAPPED:
+                if (has(options, Option::Transitional) && cp == 0x1E9E) {
+                    // replace U+1E9E capital sharp s by “ss”
+                    mapped.append(U"ss", 2);
+                } else {
+                    util::apply_mapping(value, mapped);
+                }
+                break;
+            case util::CP_DEVIATION:
+                if (has(options, Option::Transitional)) {
+                    util::apply_mapping(value, mapped);
+                } else {
+                    mapped.push_back(cp);
+                }
+                break;
+            default:
+                // CP_DISALLOWED or
+                // CP_NO_STD3_VALID if Option::UseSTD3ASCIIRules
+                // Starting with Unicode 15.1.0 don't record an error
+                if (is_to_ascii && // to_ascii optimization
+                    ((value & util::CP_DISALLOWED_STD3) == 0 || cp > 0x3E || cp < 0x3C))
+                    return false;
+                mapped.push_back(cp);
+                break;
+            }
+        }
+
+        // P2 - Normalize
+        normalize_nfc(mapped);
+    }
+
+    return true;
+}
+
+// The `map` function template instantiations
 template bool map(std::u32string&, const char*, const char*, Option, bool);
 template bool map(std::u32string&, const char16_t*, const char16_t*, Option, bool);
 template bool map(std::u32string&, const char32_t*, const char32_t*, Option, bool);
+
+// Performs ToASCII on IDNA-mapped and normalized to NFC input
 
 bool to_ascii_mapped(std::string& domain, const std::u32string& mapped, Option options) {
     // A1
@@ -362,6 +447,8 @@ bool to_ascii_mapped(std::string& domain, const std::u32string& mapped, Option o
 
     return ok;
 }
+
+// Performs ToUnicode on IDNA-mapped and normalized to NFC input
 
 bool to_unicode_mapped(std::u32string& domain, const std::u32string& mapped, Option options) {
     return processing_mapped(&domain, mapped, options);

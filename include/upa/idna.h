@@ -6,6 +6,7 @@
 #define UPA_IDNA_H
 
 #include "idna/idna.h" // IWYU pragma: export
+#include "idna/nfc.h"
 #include "idna/punycode.h"
 
 #endif // UPA_IDNA_H

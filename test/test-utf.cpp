@@ -1,8 +1,8 @@
-// Copyright 2024 Rimas Misevičius
+// Copyright 2024-2025 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
-#include "upa/idna/iterate_utf.h"
+#include "../src/iterate_utf.h"
 #include "ddt/DataDrivenTest.hpp"
 #include "convert_utf.h"
 #include <iterator>

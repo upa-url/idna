@@ -2,7 +2,7 @@
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
-#include "upa/idna/idna_table.h"
+#include "idna_table.h"
 
 namespace upa::idna::util {
 
