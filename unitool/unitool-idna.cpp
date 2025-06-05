@@ -357,7 +357,7 @@ void make_mapping_table(const std::filesystem::path& data_path) {
 
     std::vector<int> blockIndex;
 
-    fout_head << "extern UPA_IDNA_API const std::uint32_t uni_data[];\n";
+    fout_head << "extern const std::uint32_t uni_data[];\n";
     fout << "const std::uint32_t uni_data[] = {";
     {
         OutputFmt outfmt(fout, 100);
@@ -387,7 +387,7 @@ void make_mapping_table(const std::filesystem::path& data_path) {
     if (index_levels == 1) {
         // Vieno lygio indeksas
         const char* sztype = getUIntType(blockIndex);
-        fout_head << "extern UPA_IDNA_API const " << sztype << " uni_data_index[];\n";
+        fout_head << "extern const " << sztype << " uni_data_index[];\n";
         fout << "const " << sztype << " uni_data_index[] = {";
         {
             OutputFmt outfmt(fout, 100);
@@ -445,7 +445,7 @@ void make_mapping_table(const std::filesystem::path& data_path) {
     }
 
     const char* sztype = getCharType<char_to_t>();
-    fout_head << "extern UPA_IDNA_API const " << sztype << " uni_chars_to[];\n";
+    fout_head << "extern const " << sztype << " uni_chars_to[];\n";
     fout << "const " << sztype << " uni_chars_to[] = {";
     {
         OutputFmt outfmt(fout, 100);
@@ -461,7 +461,7 @@ void make_mapping_table(const std::filesystem::path& data_path) {
 
     // ASCII data
     fout_head << '\n';
-    fout_head << "extern UPA_IDNA_API const std::uint8_t ascii_data[128];\n";
+    fout_head << "extern const std::uint8_t ascii_data[128];\n";
     fout << "const std::uint8_t ascii_data[128] = {";
     {
         OutputFmt outfmt(fout, 100);

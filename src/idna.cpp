@@ -1,4 +1,4 @@
-// Copyright 2017-2024 Rimas Misevičius
+// Copyright 2017-2025 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -296,6 +296,10 @@ inline void str_append(std::string& dest, InputIt first, InputIt last) {
 } // namespace
 
 namespace detail {
+
+template bool map(std::u32string&, const char*, const char*, Option, bool);
+template bool map(std::u32string&, const char16_t*, const char16_t*, Option, bool);
+template bool map(std::u32string&, const char32_t*, const char32_t*, Option, bool);
 
 bool to_ascii_mapped(std::string& domain, const std::u32string& mapped, Option options) {
     // A1

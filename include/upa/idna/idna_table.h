@@ -5,7 +5,6 @@
 #ifndef UPA_IDNA_IDNA_TABLE_H
 #define UPA_IDNA_IDNA_TABLE_H
 
-#include "config.h" // IWYU pragma: export
 #include <cstddef>
 #include <cstdint>
 
@@ -51,13 +50,13 @@ const std::uint32_t uni_spec_range1 = 0xE0100;
 const std::uint32_t uni_spec_range2 = 0xE01EF;
 const std::uint32_t uni_spec_value = 0x20000;
 
-extern UPA_IDNA_API const std::uint32_t uni_data[];
-extern UPA_IDNA_API const std::uint16_t uni_data_index[];
-extern UPA_IDNA_API const char32_t uni_chars_to[];
+extern const std::uint32_t uni_data[];
+extern const std::uint16_t uni_data_index[];
+extern const char32_t uni_chars_to[];
 
 extern const std::uint8_t comp_disallowed_std3[3];
 
-extern UPA_IDNA_API const std::uint8_t ascii_data[128];
+extern const std::uint8_t ascii_data[128];
 // END-GENERATED
 
 
