@@ -15,7 +15,7 @@ UPA_IDNA_API void compose(std::u32string& str);
 UPA_IDNA_API void canonical_decompose(std::u32string& str);
 
 UPA_IDNA_API void normalize_nfc(std::u32string& str);
-UPA_IDNA_API bool is_normalized_nfc(const char32_t* first, const char32_t* last);
+[[nodiscard]] UPA_IDNA_API bool is_normalized_nfc(const char32_t* first, const char32_t* last);
 
 
 } // namespace upa::idna

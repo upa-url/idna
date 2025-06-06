@@ -153,7 +153,7 @@ inline bool domain_to_unicode(std::u32string& domain, const CharT* input, const 
 /// @param[in] n3 version 3rd number
 /// @param[in] n4 version 4th number
 /// @return encoded Unicode version
-constexpr unsigned make_unicode_version(unsigned n1, unsigned n2 = 0,
+[[nodiscard]] constexpr unsigned make_unicode_version(unsigned n1, unsigned n2 = 0,
     unsigned n3 = 0, unsigned n4 = 0) noexcept {
     return n1 << 24 | n2 << 16 | n3 << 8 | n4;
 }
@@ -162,7 +162,7 @@ constexpr unsigned make_unicode_version(unsigned n1, unsigned n2 = 0,
 ///
 /// @return encoded Unicode version
 /// @see make_unicode_version
-inline unsigned unicode_version() {
+[[nodiscard]] inline unsigned unicode_version() {
     return make_unicode_version(16);
 }
 
