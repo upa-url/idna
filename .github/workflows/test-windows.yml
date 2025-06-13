@@ -14,11 +14,11 @@ jobs:
     strategy:
       matrix:
         include:
-          - name: VS 2019 C++17
-            os: windows-2019
-            generator: "Visual Studio 16 2019"
+          - name: VS 2019 v142 C++17
+            os: windows-2022
+            generator: "Visual Studio 17 2022"
             cxx_standard: 17
-            cmake_options: ""
+            cmake_options: "-T v142"
 
           - name: VS 2022 C++17 shared-lib
             os: windows-2022
