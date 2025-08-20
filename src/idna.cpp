@@ -392,7 +392,7 @@ bool to_ascii_mapped(std::string& domain, const std::u32string& mapped, Option o
     if (!ok) return ok;
 
     // A2 - Break the result into labels at U+002E FULL STOP
-    if (mapped.length() == 0) {
+    if (mapped.empty()) {
         if (detail::has(options, Option::VerifyDnsLength))
             ok = false;
     } else {

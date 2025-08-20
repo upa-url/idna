@@ -24,7 +24,7 @@ namespace hangul {
 
 void compose(std::u32string& str)
 {
-    if (str.length() == 0)
+    if (str.empty())
         return;
     std::size_t dest = 0;
 

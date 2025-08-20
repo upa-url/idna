@@ -75,7 +75,7 @@ int run_idna_tests_v2(const std::filesystem::path& file_name)
         if (i_comment != line.npos)
             line.resize(i_comment);
         // got line without comment
-        if (line.length() > 0) {
+        if (!line.empty()) {
             try {
                 std::size_t pos = 0;
                 const std::string c1 = get_column8_idna(line, pos);     // source
@@ -381,7 +381,7 @@ int run_punycode_tests(const std::filesystem::path& file_name)
             line.resize(i_comment);
         }
         // got line without comment
-        if (line.length() > 0) {
+        if (!line.empty()) {
             try {
                 std::size_t pos = 0;
                 const auto inp_source = get_column32(line, pos);

@@ -69,7 +69,7 @@ static int run_nfc_tests(const std::filesystem::path& file_name)
         if (i_comment != line.npos)
             line.resize(i_comment);
         // got line without comment
-        if (line.length() > 0 && line[0] != '@') {
+        if (!line.empty() && line[0] != '@') {
             try {
                 std::size_t pos = 0;
                 const auto c1 = get_col_str32(line, pos);
