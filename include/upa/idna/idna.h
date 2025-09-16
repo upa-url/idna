@@ -163,7 +163,7 @@ inline bool domain_to_unicode(std::u32string& domain, const CharT* input, const 
 /// @return encoded Unicode version
 /// @see make_unicode_version
 [[nodiscard]] inline unsigned unicode_version() {
-    return make_unicode_version(16);
+    return make_unicode_version(17);
 }
 
 
