@@ -44,7 +44,7 @@ const std::uint32_t CAT_Bidi_NSM  = 0x8000 << 16;
 // BEGIN-GENERATED
 const std::size_t uni_block_shift = 4;
 const std::uint32_t uni_block_mask = 0xF;
-const std::uint32_t uni_default_start = 0x323B0;
+const std::uint32_t uni_default_start = 0x3347A;
 const std::uint32_t uni_default_value = 0;
 const std::uint32_t uni_spec_range1 = 0xE0100;
 const std::uint32_t uni_spec_range2 = 0xE01EF;
