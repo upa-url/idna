@@ -4,12 +4,12 @@ REM the directory path of this file
 set p=%~dp0
 
 REM Unicode version
-set UVER=16.0.0
+set UVER=17.0.0
 
 mkdir %p%\data
 
 for %%f in (IdnaMappingTable.txt) do (
-  curl -fsS -o %p%\data\%%f https://www.unicode.org/Public/idna/%UVER%/%%f
+  curl -fsS -o %p%\data\%%f https://www.unicode.org/Public/%UVER%/idna/%%f
 )
 
 for %%f in (DerivedNormalizationProps.txt UnicodeData.txt) do (
