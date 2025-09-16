@@ -5,11 +5,11 @@
 p="$(dirname "$0")"
 
 # Unicode version
-UVER=16.0.0
+UVER=17.0.0
 
 for f in IdnaTestV2.txt
 do
-  curl -fsS -o $p/data/$f https://www.unicode.org/Public/idna/${UVER}/$f
+  curl -fsS -o $p/data/$f https://www.unicode.org/Public/${UVER}/idna/$f
 done
 
 for f in NormalizationTest.txt
