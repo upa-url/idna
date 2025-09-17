@@ -45,7 +45,7 @@ jobs:
             cmake_options: "-T ClangCL"
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: get test data
       run: test\download-tests.bat
       shell: cmd
