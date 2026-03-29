@@ -1,4 +1,4 @@
-// Copyright 2017-2025 Rimas Misevičius
+// Copyright 2017-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -70,7 +70,7 @@ constexpr std::uint32_t getValidMask(bool useSTD3ASCIIRules, bool transitional) 
     return transitional ? status_mask : (status_mask & ~CP_MAPPED);
 }
 
-inline std::uint32_t getCharInfo(uint32_t cp) {
+inline std::uint32_t getCharInfo(std::uint32_t cp) {
     if (cp >= uni_default_start) {
         if (cp >= uni_spec_range1 && cp <= uni_spec_range2) {
             return uni_spec_value;
@@ -82,7 +82,7 @@ inline std::uint32_t getCharInfo(uint32_t cp) {
 }
 
 template <class StrT>
-inline std::size_t apply_mapping(uint32_t val, StrT& output) {
+inline std::size_t apply_mapping(std::uint32_t val, StrT& output) {
     if (val & MAP_TO_ONE) {
         output.push_back(val & 0xFFFF);
         return 1;

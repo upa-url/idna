@@ -1,4 +1,4 @@
-// Copyright 2017-2024 Rimas Misevičius
+// Copyright 2017-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -14,10 +14,10 @@ namespace upa::idna::util {
 inline constexpr char32_t kReplacementCharacter = 0xFFFD;
 
 // https://encoding.spec.whatwg.org/#utf-8-decoder
-constexpr uint32_t getCodePoint(const char*& it, const char* last) noexcept {
+constexpr std::uint32_t getCodePoint(const char*& it, const char* last) noexcept {
     const auto uchar = [](char c) { return static_cast<unsigned char>(c); };
     // assume it != last
-    uint32_t c1 = uchar(*it++);
+    std::uint32_t c1 = uchar(*it++);
     if (c1 >= 0x80) {
         if (c1 < 0xC2 || c1 > 0xF4)
             return kReplacementCharacter;
@@ -68,18 +68,18 @@ constexpr bool is_surrogate_trail(T ch) noexcept {
 
 // Get a supplementary code point value(U + 10000..U + 10ffff)
 // from its lead and trail surrogates.
-constexpr uint32_t get_suplementary(uint32_t lead, uint32_t trail) noexcept {
-    constexpr uint32_t surrogate_offset = (static_cast<uint32_t>(0xD800) << 10) + 0xDC00 - 0x10000;
+constexpr std::uint32_t get_suplementary(std::uint32_t lead, std::uint32_t trail) noexcept {
+    constexpr std::uint32_t surrogate_offset = (static_cast<std::uint32_t>(0xD800) << 10) + 0xDC00 - 0x10000;
     return (lead << 10) + trail - surrogate_offset;
 }
 
 // assumes it != last
 
-constexpr uint32_t getCodePoint(const char16_t*& it, const char16_t* last) noexcept {
+constexpr std::uint32_t getCodePoint(const char16_t*& it, const char16_t* last) noexcept {
     // assume it != last
-    const uint32_t c1 = *it++;
+    const std::uint32_t c1 = *it++;
     if (is_surrogate_lead(c1) && it != last) {
-        const uint32_t c2 = *it;
+        const std::uint32_t c2 = *it;
         if (is_surrogate_trail(c2)) {
             ++it;
             return get_suplementary(c1, c2);
@@ -90,7 +90,7 @@ constexpr uint32_t getCodePoint(const char16_t*& it, const char16_t* last) noexc
 
 // Get code point from UTF-32
 
-constexpr uint32_t getCodePoint(const char32_t*& it, const char32_t*) noexcept {
+constexpr std::uint32_t getCodePoint(const char32_t*& it, const char32_t*) noexcept {
     // assume it != last
     return *it++;
 }

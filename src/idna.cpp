@@ -1,4 +1,4 @@
-// Copyright 2017-2025 Rimas Misevičius
+// Copyright 2017-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -112,17 +112,17 @@ bool validate_label(const char32_t* label, const char32_t* label_end, Option opt
         // V5 - can be ignored (todo)
 
         // V6
-        const uint32_t cpflags = util::getCharInfo(label[0]); // label != label_end
+        const std::uint32_t cpflags = util::getCharInfo(label[0]); // label != label_end
         if (cpflags & util::CAT_MARK)
             return false;
 
         // V7
         // TODO: if (full_check)
-        const uint32_t valid_mask = util::getValidMask(
+        const std::uint32_t valid_mask = util::getValidMask(
             detail::has(options, Option::UseSTD3ASCIIRules),
             detail::has(options, Option::Transitional));
         for (auto it = label; it != label_end;) {
-            const uint32_t cpflags = util::getCharInfo(*it++); // it != label_end
+            const std::uint32_t cpflags = util::getCharInfo(*it++); // it != label_end
             if ((cpflags & valid_mask) != util::CP_VALID) {
                 return false;
             }
@@ -133,12 +133,12 @@ bool validate_label(const char32_t* label, const char32_t* label_end, Option opt
             // https://tools.ietf.org/html/rfc5892#appendix-A
             for (auto it = label; it != label_end;) {
                 auto start = it;
-                const uint32_t cp = *it++; // it != label_end
+                const std::uint32_t cp = *it++; // it != label_end
                 if (cp == 0x200C) {
                     // ZERO WIDTH NON-JOINER
                     if (start == label)
                         return false;
-                    uint32_t cpflags = util::getCharInfo(*(--start)); // label != start
+                    std::uint32_t cpflags = util::getCharInfo(*(--start)); // label != start
                     if (!(cpflags & util::CAT_Virama)) {
                         // {R,D} is required on the right
                         if (it == label_end)
@@ -182,7 +182,7 @@ bool validate_label(const char32_t* label, const char32_t* label_end, Option opt
 inline bool is_bidi(const char32_t* first, const char32_t* last) {
     // https://tools.ietf.org/html/rfc5893#section-2
     for (auto it = first; it != last;) {
-        const uint32_t cpflags = util::getCharInfo(*it++); // it != last
+        const std::uint32_t cpflags = util::getCharInfo(*it++); // it != last
         // A "Bidi domain name" is a domain name that contains at least one RTL
         // label. An RTL label is a label that contains at least one character
         // of type R, AL, or AN.
@@ -204,11 +204,11 @@ bool validate_bidi(const char32_t* label, const char32_t* label_end, int& bidiRe
     }
 
     // 1. The first character must be a character with Bidi property L, R, or AL
-    uint32_t cpflags = util::getCharInfo(*label++); // label != label_end
+    std::uint32_t cpflags = util::getCharInfo(*label++); // label != label_end
     if (cpflags & util::CAT_Bidi_R_AL) {
         // RTL
-        uint32_t end_cpflags = cpflags;
-        uint32_t all_cpflags = 0;
+        std::uint32_t end_cpflags = cpflags;
+        std::uint32_t all_cpflags = 0;
         for (auto it = label; it != label_end;) {
             cpflags = util::getCharInfo(*it++); // it != label_end
             // 2. R, AL, AN, EN, ES, CS, ET, ON, BN, NSM
@@ -231,7 +231,7 @@ bool validate_bidi(const char32_t* label, const char32_t* label_end, int& bidiRe
         bidiRes |= IsBidiDomain;
     } else if (cpflags & util::CAT_Bidi_L) {
         // LTR
-        uint32_t end_cpflags = cpflags;
+        std::uint32_t end_cpflags = cpflags;
         for (auto it = label; it != label_end;) {
             cpflags = util::getCharInfo(*it++); // it != label_end
 #if 0
@@ -336,10 +336,10 @@ bool map(std::u32string& mapped, const CharT* input, const CharT* input_end, Opt
                 mapped.push_back(ascii_to_lower_char(*it));
         }
     } else {
-        const uint32_t status_mask = util::getStatusMask(has(options, Option::UseSTD3ASCIIRules));
+        const std::uint32_t status_mask = util::getStatusMask(has(options, Option::UseSTD3ASCIIRules));
         for (auto it = input; it != input_end; ) {
-            const uint32_t cp = util::getCodePoint(it, input_end);
-            const uint32_t value = util::getCharInfo(cp);
+            const std::uint32_t cp = util::getCodePoint(it, input_end);
+            const std::uint32_t value = util::getCharInfo(cp);
 
             switch (value & status_mask) {
             case util::CP_VALID:
