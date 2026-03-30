@@ -5,7 +5,9 @@
 #ifndef UPA_IDNA_ITERATE_UTF_H
 #define UPA_IDNA_ITERATE_UTF_H
 
-#include <cstdint>
+#ifndef UPA_MODULE
+# include <cstdint>
+#endif // UPA_MODULE
 
 namespace upa::idna::util {
 

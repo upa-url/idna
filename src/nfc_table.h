@@ -1,12 +1,14 @@
-// Copyright 2024-2025 Rimas Misevičius
+// Copyright 2024-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
 #ifndef UPA_IDNA_NFC_TABLE_H
 #define UPA_IDNA_NFC_TABLE_H
 
-#include <cstddef>
-#include <cstdint>
+#ifndef UPA_MODULE
+# include <cstddef>
+# include <cstdint>
+#endif // UPA_MODULE
 
 namespace upa::idna::normalize {
 

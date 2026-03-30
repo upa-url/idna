@@ -31,4 +31,12 @@
 # define UPA_IDNA_API
 #endif
 
+// The following macros have values when the library is compiled as a module
+
+#ifndef UPA_EXPORT
+# define UPA_EXPORT
+# define UPA_EXPORT_BEGIN
+# define UPA_EXPORT_END
+#endif
+
 #endif // UPA_IDNA_CONFIG_H

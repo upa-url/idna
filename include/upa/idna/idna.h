@@ -1,4 +1,4 @@
-// Copyright 2017-2025 Rimas Misevičius
+// Copyright 2017-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -8,9 +8,14 @@
 #include "bitmask_operators.hpp"
 #include "config.h" // IWYU pragma: export
 #include "idna_version.h" // IWYU pragma: export
-#include <string>
+
+#ifndef UPA_MODULE
+# include <string>
+#endif // UPA_MODULE
 
 namespace upa::idna {
+
+UPA_EXPORT_BEGIN
 
 enum class Option {
     Default           = 0,
@@ -27,6 +32,7 @@ enum class Option {
 template<>
 struct enable_bitmask_operators<Option> : public std::true_type {};
 
+UPA_EXPORT_END
 
 namespace detail {
 
@@ -64,6 +70,7 @@ UPA_IDNA_API bool to_unicode_mapped(std::u32string& domain, const std::u32string
 
 } // namespace detail
 
+UPA_EXPORT_BEGIN
 
 /// @brief Implements the Unicode IDNA ToASCII
 ///
@@ -166,6 +173,7 @@ inline bool domain_to_unicode(std::u32string& domain, const CharT* input, const 
     return make_unicode_version(17);
 }
 
+UPA_EXPORT_END
 
 } // namespace upa::idna
 

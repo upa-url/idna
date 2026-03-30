@@ -5,8 +5,10 @@
 #ifndef UPA_IDNA_IDNA_TABLE_H
 #define UPA_IDNA_IDNA_TABLE_H
 
-#include <cstddef>
-#include <cstdint>
+#ifndef UPA_MODULE
+# include <cstddef>
+# include <cstdint>
+#endif // UPA_MODULE
 
 namespace upa::idna::util {
 

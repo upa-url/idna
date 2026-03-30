@@ -33,7 +33,13 @@
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#include<type_traits>
+#include "config.h"
+
+#ifndef UPA_MODULE
+# include<type_traits>
+#endif // UPA_MODULE
+
+UPA_EXPORT_BEGIN
 
 namespace upa::idna {
 
@@ -103,5 +109,7 @@ operator^=(E& lhs, E rhs) noexcept {
         static_cast<underlying>(lhs) ^ static_cast<underlying>(rhs));
     return lhs;
 }
+
+UPA_EXPORT_END
 
 #endif // UPA_IDNA_BITMASK_OPERATORS_HPP

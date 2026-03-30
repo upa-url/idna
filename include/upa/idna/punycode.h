@@ -1,4 +1,4 @@
-// Copyright 2017-2025 Rimas Misevičius
+// Copyright 2017-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -6,7 +6,10 @@
 #define UPA_IDNA_PUNYCODE_H
 
 #include "config.h" // IWYU pragma: export
-#include <string>
+
+#ifndef UPA_MODULE
+# include <string>
+#endif
 
 namespace upa::idna::punycode {
 

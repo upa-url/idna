@@ -1,11 +1,13 @@
-// Copyright 2017-2024 Rimas Misevičius
+// Copyright 2017-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
-#include "upa/idna/punycode.h"
-#include <algorithm>
-#include <cstdint>
-#include <type_traits>
+#ifndef UPA_MODULE
+# include "upa/idna/punycode.h"
+# include <algorithm>
+# include <cstdint>
+# include <type_traits>
+#endif // UPA_MODULE
 
 namespace upa::idna::punycode {
 

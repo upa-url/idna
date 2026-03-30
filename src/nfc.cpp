@@ -1,12 +1,14 @@
-// Copyright 2024-2025 Rimas Misevičius
+// Copyright 2024-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
-#include "upa/idna/nfc.h"
-#include "nfc_table.h"
-#include <algorithm>
-#include <utility> // std::move
+#ifndef UPA_MODULE
+# include "upa/idna/nfc.h"
+# include <algorithm>
+# include <utility> // std::move
+#endif // UPA_MODULE
 
+#include "nfc_table.h"
 
 namespace upa::idna {
 

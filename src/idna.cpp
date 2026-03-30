@@ -2,17 +2,19 @@
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
-#include "upa/idna/idna.h"
+#ifndef UPA_MODULE
+# include "upa/idna/idna.h"
+# include "upa/idna/nfc.h"
+# include "upa/idna/punycode.h"
+# include <algorithm>
+# include <iterator>
+# include <stdexcept>
+# include <string>
+# include <type_traits> // std::make_unsigned
+#endif // UPA_MODULE
+
 #include "idna_table.h"
 #include "iterate_utf.h"
-#include "upa/idna/nfc.h"
-#include "upa/idna/punycode.h"
-
-#include <algorithm>
-#include <iterator>
-#include <stdexcept>
-#include <string>
-#include <type_traits> // std::make_unsigned
 
 namespace upa::idna {
 namespace {
