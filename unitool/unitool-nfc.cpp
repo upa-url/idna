@@ -1,4 +1,4 @@
-// Copyright 2017-2025 Rimas Misevičius
+// Copyright 2017-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -161,7 +161,7 @@ inline bool operator==(const codepoint_key_val& lhs, const codepoint_key_val& rh
 
 static void make_composition_tables(const std::filesystem::path& data_path, std::ostream& fout_h, std::ostream& fout_cpp)
 {
-    using item_num_type = uint16_t;
+    using item_num_type = std::uint16_t;
     struct item_type {
         item_type() = default;
         item_type(item_type&& src) noexcept = default;

@@ -1,4 +1,4 @@
-// Copyright 2017-2025 Rimas Misevičius
+// Copyright 2017-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -46,7 +46,7 @@ using string_to_t = std::basic_string<char_to_t>;
 // We save Mark, Virama, Joinner, Bidi catogories only for chars having CP_VALID flag
 // set (it includes: CP_DEVIATION, CP_VALID, or CP_NO_STD3_VALID). This will dramatically
 // reduce the size of lookup tables.
-inline uint32_t allowed_char(uint32_t v) {
+inline std::uint32_t allowed_char(std::uint32_t v) {
     // CP_DEVIATION, CP_VALID, CP_NO_STD3_VALID
     return v & CP_VALID;
 }
@@ -57,11 +57,11 @@ struct char_item {
     char_item() = default;
     char_item(char_item&& src) noexcept = default;
 
-    operator uint32_t() const noexcept {
+    operator std::uint32_t() const noexcept {
         return value;
     }
 
-    uint32_t value = 0;
+    std::uint32_t value = 0;
     string_to_t charsTo;
 };
 
@@ -70,7 +70,7 @@ inline bool operator<(const char_item& lhs, const char_item& rhs) {
     return lhs.value < rhs.value;
 }
 
-template <uint32_t Mask>
+template <std::uint32_t Mask>
 struct char_item_less {
     inline bool operator()(const char_item& lhs, const char_item& rhs) {
         return (lhs.value & Mask) < (rhs.value & Mask);
@@ -97,7 +97,7 @@ void make_mapping_table(const std::filesystem::path& data_path) {
         bool has_mapped = false;
 
         // state
-        uint32_t state = 0;
+        std::uint32_t state = 0;
         if (col[0] == "disallowed") {
             state = CP_DISALLOWED;
         } else if (col[0] == "ignored") {
@@ -150,7 +150,7 @@ void make_mapping_table(const std::filesystem::path& data_path) {
 
         // put value
         for (int cp = cp0; cp <= cp1; cp++) {
-            uint32_t value = state;
+            std::uint32_t value = state;
             // Allowed STD3 characters, see "Validity Criteria" 7.3. in
             // https://www.unicode.org/reports/tr46/tr46-33.html#Validity_Criteria
             // If the code point is an ASCII code point (U+0000..U+007F), then it must
@@ -182,25 +182,25 @@ void make_mapping_table(const std::filesystem::path& data_path) {
 
         // build
         for (char_item* chitem : arrCharRef) {
-            uint32_t value = 0;
-            uint32_t flags = 0;
+            std::uint32_t value = 0;
+            std::uint32_t flags = 0;
             if (chitem->charsTo.length() == 1 && chitem->charsTo[0] <= 0xFFFF) {
                 value = chitem->charsTo[0];
                 flags |= MAP_TO_ONE;
             } else {
-                size_t pos = allCharsTo.find(chitem->charsTo);
+                std::size_t pos = allCharsTo.find(chitem->charsTo);
                 if (pos == allCharsTo.npos) {
                     pos = allCharsTo.length();
                     allCharsTo.append(chitem->charsTo);
                 }
 
-                size_t maxPos = 0;
+                std::size_t maxPos = 0;
                 if (chitem->charsTo.length() < 7) {
-                    value |= static_cast<uint32_t>(chitem->charsTo.length()) << 13;
+                    value |= static_cast<std::uint32_t>(chitem->charsTo.length()) << 13;
                     maxPos = 0x1FFF;
                 } else if (chitem->charsTo.length() < 7 + 0x1F) {
-                    value |= static_cast<uint32_t>(7) << 13;
-                    value |= static_cast<uint32_t>(chitem->charsTo.length() - 7) << 8;
+                    value |= static_cast<std::uint32_t>(7) << 13;
+                    value |= static_cast<std::uint32_t>(chitem->charsTo.length() - 7) << 8;
                     maxPos = 0x00FF;
                 }
 
@@ -250,7 +250,7 @@ void make_mapping_table(const std::filesystem::path& data_path) {
     file_name = data_path / "DerivedJoiningType.txt";
     parse_UnicodeData<1>(file_name, [&](int cp0, int cp1, const auto& col) {
         if (col[0].length() == 1) {
-            uint32_t flag = 0;
+            std::uint32_t flag = 0;
             switch (col[0][0]) {
             case 'D': flag = CAT_Joiner_D; break;
             case 'L': flag = CAT_Joiner_L; break;
@@ -272,7 +272,7 @@ void make_mapping_table(const std::filesystem::path& data_path) {
     // DerivedBidiClass.txt
     file_name = data_path / "DerivedBidiClass.txt";
     parse_UnicodeData<1>(file_name, [&](int cp0, int cp1, const auto& col) {
-        uint32_t flag = 0;
+        std::uint32_t flag = 0;
         if (col[0] == "L") {
             flag = CAT_Bidi_L;
         } else if (col[0] == "R" || col[0] == "AL") {
@@ -302,16 +302,16 @@ void make_mapping_table(const std::filesystem::path& data_path) {
     //=======================================================================
     // Output Data
 
-    special_ranges<uint32_t> spec(arrChars, 2);
+    special_ranges<std::uint32_t> spec(arrChars, 2);
     //TODO spec.range.size() >= 2
 
-    const size_t count_chars = spec.m_range[0].from;
+    const std::size_t count_chars = spec.m_range[0].from;
     const int index_levels = 1; // 1 arba 2
 
     // calculate 32bit block size
     std::cout << "=== 32 bit BLOCK ===\n";
-    block_info binf = find_block_size(arrChars, count_chars, sizeof(uint32_t), index_levels);
-    size_t block_size = binf.block_size;
+    block_info binf = find_block_size(arrChars, count_chars, sizeof(std::uint32_t), index_levels);
+    std::size_t block_size = binf.block_size;
 
     // total memory used
     std::cout << "block_size=" << block_size << "; mem: " << binf.total_mem() << "\n";
@@ -321,9 +321,9 @@ void make_mapping_table(const std::filesystem::path& data_path) {
 #if 0
     std::cout << "=== 16 bit BLOCK ===\n";
     std::cout << "--- Flags\n";
-    find_block_size<char_item, char_item_less<0xFFFF0000>>(arrChars, count_chars, sizeof(uint16_t), 2);
+    find_block_size<char_item, char_item_less<0xFFFF0000>>(arrChars, count_chars, sizeof(std::uint16_t), 2);
     std::cout << "--- Mapping\n";
-    find_block_size<char_item, char_item_less<0xFFFF>>(arrChars, count_chars, sizeof(uint16_t), 2);
+    find_block_size<char_item, char_item_less<0xFFFF>>(arrChars, count_chars, sizeof(std::uint16_t), 2);
     return;
 #endif
 
@@ -365,8 +365,8 @@ void make_mapping_table(const std::filesystem::path& data_path) {
         typedef std::map<array_view<char_item>, int> BlokcsMap;
         BlokcsMap blocks;
         int index = 0;
-        for (size_t ind = 0; ind < count_chars; ind += block_size) {
-            size_t chunk_size = std::min(block_size, arrChars.size() - ind);
+        for (std::size_t ind = 0; ind < count_chars; ind += block_size) {
+            std::size_t chunk_size = std::min(block_size, arrChars.size() - ind);
             array_view<char_item> block(arrChars.data() + ind, chunk_size);
 
             auto res = blocks.insert(BlokcsMap::value_type(block, index));
@@ -405,17 +405,17 @@ void make_mapping_table(const std::filesystem::path& data_path) {
         fout_head << "extern const " << sztype << " indexToBlock[];\n";
         fout << "const " << sztype << " indexToBlock[] = {";
         {
-            size_t count = blockIndex.size();
+            std::size_t count = blockIndex.size();
             std::cout << "=== Index BLOCK ===\n";
-            block_info bi = find_block_size(blockIndex, count, sizeof(uint16_t));
+            block_info bi = find_block_size(blockIndex, count, sizeof(std::uint16_t));
 
             OutputFmt outfmt(fout, 100);
 
             typedef std::map<array_view<int>, int> BlokcsMap;
             BlokcsMap blocks;
             int index = 0;
-            for (size_t ind = 0; ind < count; ind += bi.block_size) {
-                size_t chunk_size = std::min(bi.block_size, count - ind);
+            for (std::size_t ind = 0; ind < count; ind += bi.block_size) {
+                std::size_t chunk_size = std::min(bi.block_size, count - ind);
                 array_view<int> block(blockIndex.data() + ind, chunk_size);
 
                 auto res = blocks.insert(BlokcsMap::value_type(block, index));
