@@ -1,4 +1,4 @@
-// Copyright 2017-2024 Rimas Misevičius
+// Copyright 2017-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -240,7 +240,7 @@ inline void code_point_to_utf(int cp, std::u16string& output) {
     } else if (cp <= 0x10FFFF) {
         // http://unicode.org/faq/utf_bom.html#utf16-4
         // https://en.wikipedia.org/wiki/UTF-16#Description
-        const uint32_t cc = cp - 0x10000;
+        const std::uint32_t cc = cp - 0x10000;
         char16_t cu1 = static_cast<char16_t>(0xD800 | (cc >> 10)); // high surrogate
         char16_t cu2 = static_cast<char16_t>(0xDC00 | (cc & 0x03FF)); // low surrogate
         output.push_back(cu1);
@@ -321,7 +321,7 @@ inline bool is_error_of_to_unicode(const std::string& col) {
 // stream operator
 template <class CharT, class Traits, class StrT>
 inline std::basic_ostream<CharT, Traits>& output_str(std::basic_ostream<CharT, Traits>& os, const StrT& str, const int width) {
-    constexpr uint32_t maxCh = std::numeric_limits<CharT>::max();
+    constexpr std::uint32_t maxCh = std::numeric_limits<CharT>::max();
     for (auto ch : str) {
         if (ch <= maxCh) {
             os << static_cast<CharT>(ch);

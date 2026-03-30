@@ -1,4 +1,4 @@
-// Copyright 2024 Rimas Misevičius
+// Copyright 2024-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -107,7 +107,7 @@ static int run_nfc_tests(const std::filesystem::path& file_name)
 // stream operator
 template <class CharT, class Traits, class StrT>
 inline std::basic_ostream<CharT, Traits>& output_str(std::basic_ostream<CharT, Traits>& os, const StrT& str, const int width) {
-    constexpr uint32_t maxCh = std::numeric_limits<CharT>::max();
+    constexpr std::uint32_t maxCh = std::numeric_limits<CharT>::max();
     for (auto ch : str) {
         if (ch <= maxCh) {
             os << static_cast<CharT>(ch);
