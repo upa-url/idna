@@ -32,10 +32,8 @@ inline void split(InputIt first, InputIt last, const T& delim, FunT output) {
 
 // Processing
 
-enum BidiRes : int {
-    IsBidiDomain = 0x01,
-    IsBidiError = 0x02
-};
+constexpr int IsBidiDomain = 0x01;
+constexpr int IsBidiError = 0x02;
 
 bool validate_label(const char32_t* label, const char32_t* label_end, Option options, bool full_check, int& bidiRes);
 bool validate_bidi(const char32_t* label, const char32_t* label_end, int& bidiRes);
