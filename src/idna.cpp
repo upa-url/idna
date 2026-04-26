@@ -278,6 +278,16 @@ bool validate_bidi(const char32_t* label, const char32_t* label_end, int& bidiRe
     return true;
 }
 
+// This function does not reduce the capacity of the string if it is greater
+// than new_cap, to avoid unnecessary memory reallocations in some cases.
+template <class CharT>
+UPA_IDNA_CONSTEXPR_20 void reserve(std::basic_string<CharT>& str, std::size_t new_cap) {
+#ifndef UPA_IDNA_CPP_20
+    if (str.capacity() < new_cap)
+#endif
+        str.reserve(new_cap);
+}
+
 template <class InputIt>
 inline void str_append(std::string& dest, InputIt first, InputIt last) {
 #ifdef _MSC_VER
@@ -285,7 +295,7 @@ inline void str_append(std::string& dest, InputIt first, InputIt last) {
     if (dest.max_size() - dest.size() < input_size)
         throw std::length_error("too big size");
     // now it is safe to add sizes
-    dest.reserve(dest.size() + input_size);
+    reserve(dest, dest.size() + input_size);
     for (auto it = first; it != last; ++it)
         dest.push_back(static_cast<char>(*it));
 #else
