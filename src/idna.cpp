@@ -373,8 +373,14 @@ bool map(std::u32string& mapped, const CharT* input, const CharT* input_end, Opt
             default:
                 // CP_DISALLOWED or
                 // CP_NO_STD3_VALID if Option::UseSTD3ASCIIRules
-                // Starting with Unicode 15.1.0 don't record an error
-                if (is_to_ascii && // to_ascii optimization
+                // Starting with Unicode 15.1.0, disallowed characters are checked after NFC
+                // normalization. However, normalization is expensive. Most disallowed characters
+                // are not normalized, so they remain after normalization. Analysis in
+                // unitool-idna.cpp shows that only three STD3 disallowed characters can be
+                // normalized: 0x3C, 0x3D, and 0x3E (see upa::idna::util::comp_disallowed_std3).
+                // So, for other disallowed characters, failure can be returned here, avoiding the
+                // normalization step.
+                if (is_to_ascii &&
                     ((value & util::CP_DISALLOWED_STD3) == 0 || cp > 0x3E || cp < 0x3C))
                     return false;
                 mapped.push_back(cp);
