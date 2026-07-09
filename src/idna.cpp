@@ -317,7 +317,7 @@ constexpr char ascii_to_lower_char(CharT c) noexcept {
 // IDNA map and normalize to NFC
 
 template <typename CharT>
-bool map(std::u32string& mapped, const CharT* input, const CharT* input_end, Option options, bool is_to_ascii) {
+bool map(std::u32string& mapped, const CharT* input, const CharT* input_end, Option options) {
     using UCharT = std::make_unsigned_t<CharT>;
 
     // P1 - Map
@@ -336,7 +336,7 @@ bool map(std::u32string& mapped, const CharT* input, const CharT* input_end, Opt
                     break;
                 default:
                     // util::AC_DISALLOWED_STD3
-                    if (is_to_ascii)
+                    if (has(options, Option::FailFast))
                         return false;
                     mapped.push_back(cp);
                 }
@@ -380,7 +380,7 @@ bool map(std::u32string& mapped, const CharT* input, const CharT* input_end, Opt
                 // normalized: 0x3C, 0x3D, and 0x3E (see upa::idna::util::comp_disallowed_std3).
                 // So, for other disallowed characters, failure can be returned here, avoiding the
                 // normalization step.
-                if (is_to_ascii &&
+                if (has(options, Option::FailFast) &&
                     ((value & util::CP_DISALLOWED_STD3) == 0 || cp > 0x3E || cp < 0x3C))
                     return false;
                 mapped.push_back(cp);
@@ -396,9 +396,9 @@ bool map(std::u32string& mapped, const CharT* input, const CharT* input_end, Opt
 }
 
 // The `map` function template instantiations
-template bool map(std::u32string&, const char*, const char*, Option, bool);
-template bool map(std::u32string&, const char16_t*, const char16_t*, Option, bool);
-template bool map(std::u32string&, const char32_t*, const char32_t*, Option, bool);
+template bool map(std::u32string&, const char*, const char*, Option);
+template bool map(std::u32string&, const char16_t*, const char16_t*, Option);
+template bool map(std::u32string&, const char32_t*, const char32_t*, Option);
 
 // Performs ToASCII on IDNA-mapped and normalized to NFC input
 

@@ -27,6 +27,8 @@ enum class Option {
     CheckJoiners      = 0x0020,
     // ASCII optimization
     InputASCII        = 0x1000,
+    // On error return imediatly, without further processing
+    FailFast          = 0x2000,
 };
 
 template<>
@@ -34,7 +36,7 @@ struct enable_bitmask_operators<Option> : public std::true_type {};
 
 // Returns the options for to_ascii and to_unicode functions
 constexpr Option domain_options(bool be_strict, bool is_input_ascii) noexcept {
-    // https://url.spec.whatwg.org/#concept-domain-to-ascii
+    // https://url.spec.whatwg.org/#domain-parser-toascii
     // https://url.spec.whatwg.org/#concept-domain-to-unicode
     // Note. The to_unicode ignores Option::VerifyDnsLength
     auto options = Option::CheckBidi | Option::CheckJoiners;
@@ -57,11 +59,11 @@ constexpr bool has(Option option, const Option value) noexcept {
 // IDNA map and normalize to NFC
 
 template <typename CharT>
-bool map(std::u32string& mapped, const CharT* input, const CharT* input_end, Option options, bool is_to_ascii);
+bool map(std::u32string& mapped, const CharT* input, const CharT* input_end, Option options);
 
-extern template UPA_IDNA_API bool map(std::u32string&, const char*, const char*, Option, bool);
-extern template UPA_IDNA_API bool map(std::u32string&, const char16_t*, const char16_t*, Option, bool);
-extern template UPA_IDNA_API bool map(std::u32string&, const char32_t*, const char32_t*, Option, bool);
+extern template UPA_IDNA_API bool map(std::u32string&, const char*, const char*, Option);
+extern template UPA_IDNA_API bool map(std::u32string&, const char16_t*, const char16_t*, Option);
+extern template UPA_IDNA_API bool map(std::u32string&, const char32_t*, const char32_t*, Option);
 
 // Performs ToASCII on IDNA-mapped and normalized to NFC input
 UPA_IDNA_API bool to_ascii_mapped(std::string& domain, const std::u32string& mapped, Option options);
@@ -77,7 +79,8 @@ UPA_EXPORT_BEGIN
 ///
 /// See: https://www.unicode.org/reports/tr46/#ToASCII
 ///
-/// @param[out] domain buffer to store result string
+/// @param[out] domain buffer to store result string. Stored
+///   result is valid if the function returns `true`.
 /// @param[in]  input source domain string
 /// @param[in]  input_end the end of source domain string
 /// @param[in]  options
@@ -87,16 +90,19 @@ inline bool to_ascii(std::string& domain, const CharT* input, const CharT* input
     // P1 - Map and further processing
     std::u32string mapped;
     domain.clear();
+    const auto opt = options | Option::FailFast;
     return
-        detail::map(mapped, input, input_end, options, true) &&
-        detail::to_ascii_mapped(domain, mapped, options);
+        detail::map(mapped, input, input_end, opt) &&
+        detail::to_ascii_mapped(domain, mapped, opt);
 }
 
 /// @brief Implements the Unicode IDNA ToUnicode
 ///
 /// See: https://www.unicode.org/reports/tr46/#ToUnicode
 ///
-/// @param[out] domain buffer to store result string
+/// @param[out] domain buffer to store result string. Result is appended to the buffer. The
+///  stored result is valid regardless of the returned value, unless `Option::FailFast` is
+///  specified; in that case, the stored result is valid only if the returned value is `true`.
 /// @param[in]  input source domain string
 /// @param[in]  input_end the end of source domain string
 /// @param[in]  options
@@ -105,7 +111,9 @@ template <typename CharT>
 inline bool to_unicode(std::u32string& domain, const CharT* input, const CharT* input_end, Option options) {
     // P1 - Map and further processing
     std::u32string mapped;
-    detail::map(mapped, input, input_end, options, false);
+    if (!detail::map(mapped, input, input_end, options) &&
+        detail::has(options, Option::FailFast))
+        return false;
     return detail::to_unicode_mapped(domain, mapped, options);
 }
 
