@@ -32,15 +32,7 @@ enum class Option {
 template<>
 struct enable_bitmask_operators<Option> : public std::true_type {};
 
-UPA_EXPORT_END
-
-namespace detail {
-
-// Bit flags
-constexpr bool has(Option option, const Option value) noexcept {
-    return (option & value) == value;
-}
-
+// Returns the options for to_ascii and to_unicode functions
 constexpr Option domain_options(bool be_strict, bool is_input_ascii) noexcept {
     // https://url.spec.whatwg.org/#concept-domain-to-ascii
     // https://url.spec.whatwg.org/#concept-domain-to-unicode
@@ -51,6 +43,15 @@ constexpr Option domain_options(bool be_strict, bool is_input_ascii) noexcept {
     if (is_input_ascii)
         options |= Option::InputASCII;
     return options;
+}
+
+UPA_EXPORT_END
+
+namespace detail {
+
+// Bit flags
+constexpr bool has(Option option, const Option value) noexcept {
+    return (option & value) == value;
 }
 
 // IDNA map and normalize to NFC
@@ -110,7 +111,7 @@ inline bool to_unicode(std::u32string& domain, const CharT* input, const CharT* 
 
 /// @brief Implements the domain to ASCII algorithm
 ///
-/// See: https://url.spec.whatwg.org/#concept-domain-to-ascii
+/// This function is deprecated. Use `to_ascii` instead.
 ///
 /// @param[out] domain buffer to store result string
 /// @param[in]  input source domain string
@@ -119,10 +120,11 @@ inline bool to_unicode(std::u32string& domain, const CharT* input, const CharT* 
 /// @param[in]  is_input_ascii
 /// @return `true` on success, or `false` on failure
 template <typename CharT>
+[[deprecated]]
 inline bool domain_to_ascii(std::string& domain, const CharT* input, const CharT* input_end,
     bool be_strict = false, bool is_input_ascii = false)
 {
-    const bool res = to_ascii(domain, input, input_end, detail::domain_options(be_strict, is_input_ascii));
+    const bool res = to_ascii(domain, input, input_end, domain_options(be_strict, is_input_ascii));
 
     // 3. If result is the empty string, domain-to-ASCII validation error, return failure.
     //
@@ -133,7 +135,7 @@ inline bool domain_to_ascii(std::string& domain, const CharT* input, const CharT
 
 /// @brief Implements the domain to Unicode algorithm
 ///
-/// See: https://url.spec.whatwg.org/#concept-domain-to-unicode
+/// This function is deprecated. Use `to_unicode` instead.
 ///
 /// @param[out] domain buffer to store result string
 /// @param[in]  input source domain string
@@ -142,10 +144,11 @@ inline bool domain_to_ascii(std::string& domain, const CharT* input, const CharT
 /// @param[in]  is_input_ascii
 /// @return `true` on success, or `false` on errors
 template <typename CharT>
+[[deprecated]]
 inline bool domain_to_unicode(std::u32string& domain, const CharT* input, const CharT* input_end,
     bool be_strict = false, bool is_input_ascii = false)
 {
-    return to_unicode(domain, input, input_end, detail::domain_options(be_strict, is_input_ascii));
+    return to_unicode(domain, input, input_end, domain_options(be_strict, is_input_ascii));
 }
 
 /// @brief Encodes Unicode version
