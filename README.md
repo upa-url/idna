@@ -1,6 +1,6 @@
 # Upa IDNA
 
-Upa IDNA is the [Unicode IDNA Compatibility Processing (UTS #46)](https://www.unicode.org/reports/tr46/) C++ library. It is compliant with the 17.0.0 version of the Unicode standard.
+Upa IDNA is the [Unicode IDNA Compatibility Processing (UTS #46)](https://www.unicode.org/reports/tr46/) C++ library. It is compliant with the 18.0.0 version of the Unicode standard.
 
 This library implements two functions from [UTS #46](https://www.unicode.org/reports/tr46/): [`to_ascii`](https://www.unicode.org/reports/tr46/#ToASCII) and [`to_unicode`](https://www.unicode.org/reports/tr46/#ToUnicode). It has no dependencies and requires C++17 or later.
 
